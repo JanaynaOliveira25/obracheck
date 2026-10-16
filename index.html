@@ -260,6 +260,28 @@
   .selection-card .btn { margin-top: 4px; }
 
   .sheet-toolbar { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; margin-bottom: 4px; }
+  .sheet-toolbar-actions { display: flex; flex-wrap: wrap; gap: 4px; justify-content: flex-end; }
+
+  .history-list { display: flex; flex-direction: column; gap: 10px; margin-top: 14px; }
+  .history-row {
+    display: grid; grid-template-columns: 1fr auto auto; align-items: center; gap: 12px;
+    padding: 12px 14px; background: var(--bg); border: 1.5px solid var(--border); border-radius: 10px;
+  }
+  .history-main { display: flex; flex-direction: column; gap: 2px; }
+  .history-main strong { font-size: 15px; }
+  .history-sub { font-size: 12.5px; color: var(--text-muted); }
+  .history-fech { font-size: 12.5px; font-weight: 600; margin-top: 2px; }
+  .history-fech.is-ok { color: var(--ok); }
+  .history-fech.is-pending { color: var(--text-muted); font-weight: 500; }
+  .history-stats { display: flex; gap: 6px; flex-wrap: wrap; }
+  .history-pill { font-size: 12px; font-weight: 700; padding: 4px 9px; border-radius: 999px; }
+  .history-pill.is-ok { background: var(--ok-bg); color: var(--ok); }
+  .history-pill.is-nc { background: var(--nc-bg); color: var(--nc); }
+  .history-pill.is-partial { background: #FCEFD8; color: #8a5a10; }
+  .history-pill.is-empty { background: var(--na-bg); color: var(--na); }
+  @media (max-width: 560px) {
+    .history-row { grid-template-columns: 1fr; }
+  }
 
   .toast {
     position: fixed; left: 50%; bottom: 22px; transform: translate(-50%, 12px);
@@ -629,6 +651,7 @@
      ========================================================= */
   var selForm = { obra: OBRAS[0] || "", maquinaTipo: "", maquinaId: "", empresa: "", mesAno: currentMonthISO() };
   var sheet = null; // { key, record, selectedDay, draft }
+  var historyView = null; // { tipo, maquinaId } — tela de histórico da máquina (todas as obras/meses)
   var capDownloads = null;
   var sigCtl = null;
   var sigCtlFechOperador = null;
@@ -861,6 +884,101 @@
     if (hasNC) return "nc";
     var allFilled = d.statuses.every(function (s) { return !!s; });
     return allFilled ? "ok" : "partial";
+  }
+
+  /* =========================================================
+     HISTÓRICO DA MÁQUINA (por obra e máquina, em qualquer mês)
+     O localStorage já guarda uma cópia de TODAS as planilhas da nuvem
+     (ver syncOnStartup/pullAllFromCloud, sem filtro de obra), então o
+     histórico de uma máquina fica disponível em qualquer aparelho,
+     mesmo que o técnico de segurança tenha mudado de obra — sem
+     depender de adivinhar em qual obra/mês a máquina foi cadastrada.
+     ========================================================= */
+  function summarizeRecord(record) {
+    var dias = Object.keys(record.dias || {});
+    var ok = 0, nc = 0, partial = 0;
+    dias.forEach(function (d) {
+      var st = dayStatus(record, d);
+      if (st === "ok") ok++; else if (st === "nc") nc++; else if (st === "partial") partial++;
+    });
+    return { ok: ok, nc: nc, partial: partial, preenchidos: dias.length };
+  }
+
+  function machineHistoryEntries(tipo, maquinaId) {
+    var months = loadMonths();
+    var wantId = slug(maquinaId);
+    var out = [];
+    Object.keys(months).forEach(function (key) {
+      var r = months[key];
+      if (!r || r.maquinaTipoKey !== tipo) return;
+      if (wantId && slug(r.maquinaId) !== wantId) return;
+      out.push({ key: key, record: r });
+    });
+    out.sort(function (a, b) {
+      if (a.record.mesAno !== b.record.mesAno) return a.record.mesAno < b.record.mesAno ? 1 : -1;
+      return (a.record.obra || "").localeCompare(b.record.obra || "");
+    });
+    return out;
+  }
+
+  function openHistoryRecord(key) {
+    var months = loadMonths();
+    var record = months[key];
+    if (!record) return;
+    historyView = null;
+    sheet = { key: key, record: record, selectedDay: isCurrentMonth(record.mesAno) ? todayDayOfMonth() : "01" };
+    render();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function renderHistory() {
+    var tipo = historyView.tipo;
+    var maquinaId = historyView.maquinaId;
+    var entries = machineHistoryEntries(tipo, maquinaId);
+    var rows = entries.map(function (e) {
+      var r = e.record;
+      var s = summarizeRecord(r);
+      var f = getFechamento(r);
+      var fechHtml = f.data ?
+        '<span class="history-fech is-ok">Fechado em ' + esc(f.data) + " — Operador: " + esc(f.operadorNome || "—") + " / TST: " + esc(f.tstNome || "—") + "</span>" :
+        '<span class="history-fech is-pending">Sem fechamento assinado</span>';
+      var pills =
+        (s.ok ? '<span class="history-pill is-ok">' + s.ok + " ok</span>" : "") +
+        (s.nc ? '<span class="history-pill is-nc">' + s.nc + " NC</span>" : "") +
+        (s.partial ? '<span class="history-pill is-partial">' + s.partial + " parcial</span>" : "") +
+        (!s.preenchidos ? '<span class="history-pill is-empty">sem preenchimento</span>' : "");
+      return (
+        '<div class="history-row">' +
+        '<div class="history-main">' +
+        "<strong>" + esc(r.obra) + "</strong>" +
+        '<span class="history-sub">' + esc(monthLabel(r.mesAno)) + (r.maquinaId ? " — " + esc(r.maquinaId) : "") + (r.empresa ? " · " + esc(r.empresa) : "") + "</span>" +
+        fechHtml +
+        "</div>" +
+        '<div class="history-stats">' + pills + "</div>" +
+        '<button type="button" class="btn btn-secondary history-open" data-key="' + esc(e.key) + '">Abrir</button>' +
+        "</div>"
+      );
+    }).join("");
+    return (
+      '<section class="card">' +
+      '<div class="sheet-toolbar">' +
+      "<div>" +
+      '<p class="card-eyebrow">Histórico da máquina</p>' +
+      '<h1 class="card-title">' + esc(machineLabel(tipo)) + (maquinaId ? " — " + esc(maquinaId) : "") + "</h1>" +
+      "</div>" +
+      '<button type="button" class="btn-ghost" id="btn-historico-voltar">Voltar</button>' +
+      "</div>" +
+      '<p class="closing-hint">Mostra todas as planilhas já preenchidas para esta máquina, em qualquer obra e mês — útil se o técnico de segurança mudou de obra e precisa consultar o histórico para continuar a liberação do equipamento.</p>' +
+      (entries.length ? '<div class="history-list">' + rows + "</div>" : '<p class="closing-status is-pending">Nenhum registro encontrado para esta máquina ainda.</p>') +
+      "</section>"
+    );
+  }
+
+  function bindHistory() {
+    document.getElementById("btn-historico-voltar").addEventListener("click", function () { historyView = null; render(); });
+    document.querySelectorAll(".history-open").forEach(function (btn) {
+      btn.addEventListener("click", function () { openHistoryRecord(btn.getAttribute("data-key")); });
+    });
   }
 
   /* =========================================================
@@ -1311,6 +1429,11 @@
      RENDER — SELEÇÃO (obra / máquina / mês)
      ========================================================= */
   function render() {
+    if (historyView) {
+      root.innerHTML = renderHistory();
+      bindHistory();
+      return;
+    }
     root.innerHTML = sheet ? renderSheet() : renderSelection();
     if (sheet) { bindSheetShell(); mountDayForm(); } else { bindSelection(); }
   }
@@ -1336,7 +1459,10 @@
       '<label class="field"><span>Empresa (opcional)</span><input type="text" id="sel-empresa" placeholder="Empresa" value="' + esc(selForm.empresa) + '"></label>' +
       '<label class="field"><span>Mês</span><input type="month" id="sel-mes" value="' + esc(selForm.mesAno) + '"></label>' +
       "</div>" +
+      '<div class="btn-row">' +
       '<button type="button" class="btn btn-primary" id="btn-abrir"' + (selForm.maquinaTipo ? "" : " disabled") + ">Abrir planilha do mês</button>" +
+      '<button type="button" class="btn btn-secondary" id="btn-historico"' + (selForm.maquinaTipo ? "" : " disabled") + '>Ver histórico desta máquina (todas as obras)</button>' +
+      "</div>" +
       "</section>"
     );
   }
@@ -1350,6 +1476,11 @@
     document.getElementById("sel-maquina-id").addEventListener("input", function (e) { selForm.maquinaId = e.target.value; });
     document.getElementById("sel-empresa").addEventListener("input", function (e) { selForm.empresa = e.target.value; });
     document.getElementById("sel-mes").addEventListener("change", function (e) { selForm.mesAno = e.target.value || currentMonthISO(); });
+    document.getElementById("btn-historico").addEventListener("click", function () {
+      if (!selForm.maquinaTipo) return;
+      historyView = { tipo: selForm.maquinaTipo, maquinaId: selForm.maquinaId };
+      render();
+    });
     document.getElementById("btn-abrir").addEventListener("click", openSheet);
   }
 
@@ -1391,7 +1522,10 @@
       '<p class="card-eyebrow">Planilha do mês</p>' +
       '<h1 class="card-title">' + esc(machineLabel(record.maquinaTipoKey)) + " — " + monthLabel(record.mesAno) + "</h1>" +
       "</div>" +
+      '<div class="sheet-toolbar-actions">' +
+      '<button type="button" class="btn-ghost" id="btn-historico-sheet">Ver histórico desta máquina</button>' +
       '<button type="button" class="btn-ghost" id="btn-trocar">Trocar obra/máquina/mês</button>' +
+      "</div>" +
       "</div>" +
       (MACHINE_TYPES[record.maquinaTipoKey] && MACHINE_TYPES[record.maquinaTipoKey].foto ?
         '<div class="machine-photo-row">' +
@@ -1444,6 +1578,11 @@
 
   function bindSheetShell() {
     document.getElementById("btn-trocar").addEventListener("click", function () { sheet = null; render(); });
+    document.getElementById("btn-historico-sheet").addEventListener("click", function () {
+      var record = sheet.record;
+      historyView = { tipo: record.maquinaTipoKey, maquinaId: record.maquinaId };
+      render();
+    });
     document.getElementById("btn-pdf").addEventListener("click", function () { offerMonthPDF(sheet.record); });
     document.getElementById("btn-backup").addEventListener("click", function () { offerBackup(sheet.record); });
     var importInput = document.getElementById("import-input");
