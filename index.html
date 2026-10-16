@@ -129,7 +129,89 @@
   .brand-name small { display: block; font-family: 'IBM Plex Mono', monospace; font-weight: 500; font-size: 10.5px; letter-spacing: 0.09em; text-transform: uppercase; color: var(--accent); margin-top: 1px; }
   .info-banner { max-width: 960px; margin: 0 auto; padding: 7px 20px 11px; font-size: 12.5px; color: #9fc2b3; }
 
+  .tab-bar { max-width: 960px; margin: 0 auto; padding: 0 20px 14px; display: flex; gap: 8px; }
+  .tab-btn {
+    appearance: none; border: 1.5px solid rgba(255,255,255,0.22); background: transparent; color: #cfe7df;
+    border-radius: 999px; padding: 9px 18px; font-size: 13.5px; font-weight: 600; cursor: pointer;
+  }
+  .tab-btn.is-active { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+
   .container { max-width: 960px; margin: 0 auto; padding: 22px 20px 60px; display: flex; flex-direction: column; gap: 18px; }
+
+  /* ===== Alojamentos ===== */
+  .score-badge {
+    display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: 10px;
+    font-weight: 700; font-size: 14px; border: 1.5px solid var(--border); background: var(--bg); margin-bottom: 16px;
+  }
+  .score-badge .score-num { font-family: 'IBM Plex Mono', monospace; font-size: 15px; }
+  .score-badge.is-otimo, .score-badge.is-bom { background: var(--ok-bg); border-color: var(--ok-border); color: var(--ok); }
+  .score-badge.is-regular { background: #FCEFD8; border-color: #f0d6a0; color: #8a5a10; }
+  .score-badge.is-ruim, .score-badge.is-pessimo { background: var(--nc-bg); border-color: var(--nc-border); color: var(--nc); }
+  .score-badge.is-vazio { color: var(--text-muted); }
+
+  .aloj-item {
+    display: flex; flex-direction: column; gap: 10px; padding: 12px 14px; background: var(--bg);
+    border: 1.5px solid var(--border); border-radius: 10px; margin-bottom: 10px;
+  }
+  .aloj-item.is-nao { border-color: var(--nc-border); background: var(--nc-bg); }
+  .aloj-item.is-sim { border-color: var(--ok-border); }
+  .aloj-item-top { display: grid; grid-template-columns: 30px 1fr auto; align-items: center; gap: 12px; }
+  .aloj-item-extra { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; }
+  .aloj-item-extra[hidden] { display: none; }
+
+  .dyn-list { display: flex; flex-direction: column; gap: 14px; margin-bottom: 14px; }
+  .dyn-row { padding: 14px; background: var(--bg); border: 1.5px solid var(--border); border-radius: 10px; }
+  .dyn-row-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 10px; }
+  .dyn-row-fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; margin-bottom: 10px; }
+  .dyn-remove-btn {
+    appearance: none; border: 1.5px solid var(--border); background: var(--surface); color: var(--nc);
+    border-radius: 8px; padding: 6px 10px; font-size: 12.5px; font-weight: 600; cursor: pointer; flex: none;
+  }
+
+  .termo-text { font-size: 13px; color: var(--text); line-height: 1.5; max-height: 360px; overflow-y: auto; background: var(--bg); border: 1.5px solid var(--border); border-radius: 10px; padding: 14px 16px; margin-bottom: 18px; }
+  .termo-text h3 { font-size: 13.5px; margin: 14px 0 6px; }
+  .termo-text h3:first-child { margin-top: 0; }
+  .termo-text ul { margin: 0 0 4px; padding-left: 20px; }
+  .termo-text li { margin-bottom: 4px; }
+  .termo-text p { margin: 0 0 8px; }
+
+  .aloj-menu-list { display: flex; flex-direction: column; gap: 10px; margin-top: 14px; }
+  .aloj-menu-row {
+    display: flex; justify-content: space-between; align-items: center; gap: 12px;
+    padding: 12px 14px; background: var(--bg); border: 1.5px solid var(--border); border-radius: 10px;
+  }
+
+  /* ===== Dashboard ===== */
+  .dash-filters { display: flex; flex-wrap: wrap; gap: 14px; margin-bottom: 20px; }
+  .dash-filters .field { min-width: 180px; flex: 1; }
+  .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-bottom: 22px; }
+  .stat-tile {
+    background: var(--bg); border: 1.5px solid var(--border); border-radius: 12px; padding: 16px 18px;
+    display: flex; flex-direction: column; gap: 4px;
+  }
+  .stat-tile-label { font-size: 12.5px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.03em; }
+  .stat-tile-value { font-family: 'IBM Plex Mono', monospace; font-variant-numeric: tabular-nums; font-size: 28px; font-weight: 700; line-height: 1.1; }
+  .stat-tile-value.is-good { color: var(--ok); }
+  .stat-tile-value.is-warning { color: #8a5a10; }
+  .stat-tile-value.is-critical { color: var(--nc); }
+  .stat-tile-sub { font-size: 12px; color: var(--text-muted); }
+  .dash-section { margin-bottom: 26px; }
+  .dash-section:last-child { margin-bottom: 0; }
+  .dash-section-title { font-size: 15.5px; font-weight: 700; margin: 0 0 4px; }
+  .dash-section-hint { font-size: 12.5px; color: var(--text-muted); margin: 0 0 14px; }
+  .rank-list { display: flex; flex-direction: column; gap: 14px; }
+  .rank-row { display: flex; flex-direction: column; gap: 4px; }
+  .rank-row-top { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+  .rank-label { font-size: 13.5px; color: var(--text); flex: 1; }
+  .rank-value { font-size: 13px; color: var(--text-muted); flex: none; }
+  .rank-bar-wrap { height: 8px; border-radius: 999px; background: var(--border); overflow: hidden; }
+  .rank-bar { height: 100%; border-radius: 999px; }
+  .rank-sub { font-size: 11.5px; color: var(--text-muted); }
+  .dash-pending-list { display: flex; flex-direction: column; gap: 8px; }
+  .dash-pending-row {
+    display: flex; justify-content: space-between; align-items: center; gap: 12px;
+    padding: 10px 14px; background: var(--bg); border: 1.5px solid var(--border); border-radius: 10px; font-size: 13.5px;
+  }
 
   .card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 22px; box-shadow: var(--shadow); }
   .card-title { font-size: 20px; margin-bottom: 16px; }
@@ -220,6 +302,8 @@
   .status-btn[data-status="ok"].active { background: var(--ok-bg); border-color: var(--ok); color: var(--ok); }
   .status-btn[data-status="nc"].active { background: var(--nc-bg); border-color: var(--nc); color: var(--nc); }
   .status-btn[data-status="na"].active { background: var(--na-bg); border-color: var(--na); color: var(--na); }
+  .status-btn[data-status="sim"].active { background: var(--ok-bg); border-color: var(--ok); color: var(--ok); }
+  .status-btn[data-status="nao"].active { background: var(--nc-bg); border-color: var(--nc); color: var(--nc); }
 
   .nc-note[hidden], .sig-section[hidden] { display: none; }
   .nc-note { margin-bottom: 18px; }
@@ -328,6 +412,11 @@
       </div>
     </div>
     <p class="info-banner">Cada obra/máquina tem uma planilha do mês salva neste aparelho — igual à folha de papel, um dia por coluna. Baixe o PDF quando quiser, ou exporte um backup do mês para levar a outro tablet.</p>
+    <nav class="tab-bar" id="tab-bar">
+      <button type="button" class="tab-btn is-active" data-tab="maquinas">Checklist de Máquinas</button>
+      <button type="button" class="tab-btn" data-tab="alojamentos">Alojamentos</button>
+      <button type="button" class="tab-btn" data-tab="dashboard">Dashboard</button>
+    </nav>
   </header>
   <main class="container" id="root"></main>
 </div>
@@ -647,15 +736,107 @@
   var STORAGE_KEY = "obracheck_months_v2";
 
   /* =========================================================
+     ALOJAMENTOS — itens do checklist (NR-18) e texto do termo de uso
+     ========================================================= */
+  var ALOJAMENTO_ITENS = [
+    "Possui armários individuais duplos com separação para guarda de roupas dos trabalhadores?",
+    "Possui área mínima de 3,00 m² por módulo cama/armário, incluindo a área de circulação?",
+    "Alojamento está devidamente limpo e organizado?",
+    "As instalações elétricas estão devidamente protegidas?",
+    "Possui bebedouro com filtro para fornecimento de água potável e fresca?",
+    "Possui chuveiro na proporção de 1 (um) para cada grupo de 10 (dez) trabalhadores ou fração?",
+    "Os chuveiros estão aterrados adequadamente?",
+    "Os chuveiros dispõem de água quente?",
+    "Dispõem de saboneteira?",
+    "Possui beliche?",
+    "Possui cama simples?",
+    "A cama superior do beliche tem proteção lateral e escada?",
+    "As dimensões mínimas das camas são de 0,80m por 1,90 m de distância entre o ripamento do estrado de 0,05m, colchão com densidade 26 e espessura mínima de 0,10m?",
+    "Possui roupa de cama fornecida pela empresa?",
+    "Possui mesa e cadeira para realização das refeições?",
+    "Possui cesto de lixo com tampa?",
+    "O forro e/ou laje do alojamento está em boas condições de conservação e segurança?",
+    "A pintura externa do alojamento está em boas condições de conservação?",
+    "A pintura interna do alojamento está em boas condições de conservação?",
+    "As porta e janelas possuem trincos e/ou fechaduras que garantem a segurança dos trabalhadores?",
+    "As portas e janelas estão em boas condições de conservação?",
+    "As instalações sanitárias possuem revestimento adequado que permite a higienização?",
+    "O piso do alojamento está em boas condições de conservação?"
+  ];
+
+  var TERMO_ALOJAMENTO_INTRO = "Este termo tem como objetivo estabelecer as regras de utilização do alojamento disponibilizado pela empresa aos colaboradores durante o período de execução da obra. Ao assinar este documento, o colaborador declara estar ciente e concorda com as seguintes regras:";
+
+  var TERMO_ALOJAMENTO_SECOES = [
+    { titulo: "1. Regras Gerais de Convivência", itens: [
+      "Zelar pela conservação do alojamento, incluindo móveis, eletrodomésticos, equipamentos, utensílios, portas, janelas, colchões e demais itens disponibilizados pela empresa.",
+      "Manter os quartos, banheiros, cozinha e demais áreas comuns sempre limpos, organizados e em boas condições de uso.",
+      "Respeitar e promover o bom convívio entre demais colaboradores, mantendo comportamento adequado, preservando a integridade física e moral dos mesmos, estando, portanto, PROIBIDO realização de trotes e brincadeiras que possam vir a constranger alguém, ameaçar ou comprometer a integridade física ou moral de outros colaboradores.",
+      "É proibido barulho excessivo nas dependências do alojamento entre 20h00 e 06h00, devendo ser respeitado o horário de silêncio.",
+      "É proibida a realização de festas, confraternizações ou quaisquer eventos nas dependências do alojamento.",
+      "É proibida a entrada ou permanência de pessoas não autorizadas nas dependências do alojamento e nos quartos.",
+      "É proibida a criação ou permanência de animais de qualquer espécie nas dependências do alojamento.",
+      "É proibido transitar pelas áreas comuns utilizando vestimentas inadequadas.",
+      "É proibida a mudança de quarto ou de alojamento sem autorização prévia do responsável pelos alojamentos, considerando a disponibilidade de vagas."
+    ] },
+    { titulo: "2. Álcool, Fumo e Substâncias", itens: [
+      "É proibido o consumo de bebidas alcoólicas ou de substâncias ilícitas nas dependências do alojamento.",
+      "É proibido fumar dentro dos quartos e em quaisquer locais fechados ou sem ventilação adequada. O fumo será permitido somente nos locais ventilados previamente indicados pela empresa.",
+      "É proibida a utilização ou instalação de fogões, fogareiros ou equipamentos similares que possam ocasionar incêndios nas dependências do alojamento.",
+      "É proibido cozinhar, aquecer alimentos ou utilizar objetos que possam causar combustão ou incêndio dentro das dependências do alojamento."
+    ] },
+    { titulo: "3. Segurança", itens: [
+      "É proibido o porte de armas de fogo, armas brancas ou qualquer objeto que possa ser utilizado como arma, incluindo porretes, tacos, instrumentos pontiagudos ou similares.",
+      "É proibida a utilização de extensões elétricas, benjamins, adaptadores ou equipamentos similares que possam oferecer risco à instalação elétrica ou à segurança dos ocupantes.",
+      "Cumprir todas as normas e orientações de segurança, higiene e saúde estabelecidas pela empresa."
+    ] },
+    { titulo: "4. Conservação, Danos e Manutenção", itens: [
+      "Utilizar água e energia elétrica de forma consciente, evitando desperdícios.",
+      "Não realizar alterações nas características do imóvel ou nas instalações do alojamento sem autorização prévia da empresa.",
+      "É proibido danificar paredes, portas, janelas, vidros, maçanetas, camas, colchões, eletrodomésticos, móveis ou quaisquer outros bens disponibilizados no alojamento.",
+      "É proibido retirar móveis, utensílios, equipamentos ou colchões de seus locais de utilização sem autorização.",
+      "Os colchões não poderão ser retirados das camas para utilização em outros locais do alojamento, nem deixados diretamente no chão dos quartos, cozinha, sala ou demais áreas.",
+      "Qualquer dano causado por mau uso, bem como alterações não autorizadas, poderá gerar a cobrança dos respectivos custos de reparo ao responsável, observadas as regras aplicáveis.",
+      "Comunicar imediatamente ao responsável pelo alojamento qualquer dano, defeito, problema de manutenção ou situação que possa comprometer a segurança, higiene ou conservação do imóvel.",
+      "O lixo deverá ser descartado corretamente nos locais indicados, mantendo as áreas do alojamento limpas e organizadas."
+    ] },
+    { titulo: "5. Pertences e Veículos", itens: [
+      "Cada colaborador é responsável pela guarda e organização de seus pertences pessoais. A empresa não se responsabiliza por perdas, furtos ou danos de objetos pessoais, como celulares, carteiras, cartões, documentos, talões de cheques ou outros bens deixados nas dependências do alojamento.",
+      "A empresa não se responsabiliza por danos ocorridos com veículos de colaboradores estacionados nas dependências do alojamento."
+    ] },
+    { titulo: "6. Fiscalização e Cumprimento das Normas", itens: [
+      "É facultado à EMAIS Residências realizar vistorias periódicas nas instalações do alojamento, com o objetivo de verificar as condições do imóvel e o cumprimento destas normas.",
+      "O descumprimento das normas poderá resultar na aplicação das medidas disciplinares cabíveis, conforme a gravidade da ocorrência e as regras internas da empresa.",
+      "Todos os colaboradores que utilizarem o alojamento deverão conhecer, cumprir e contribuir para o cumprimento destas normas, visando garantir a segurança, higiene, conservação e boa convivência no local."
+    ] }
+  ];
+
+  var TERMO_ALOJAMENTO_PENALIDADE = "O descumprimento das regras poderá gerar medidas de reintegração e retirada do alojamento.";
+  var TERMO_ALOJAMENTO_DECLARACAO = "Declaro que recebi as orientações sobre as regras de utilização do alojamento da obra, compreendi todas as condições descritas neste termo e comprometo-me a cumpri-las integralmente, zelando pelo patrimônio da empresa e mantendo uma convivência respeitosa com os demais colaboradores.";
+
+  var ALOJ_STORAGE_KEY = "obracheck_alojamento_checklists_v1";
+  var ALOJ_TABLE = "alojamento_checklists";
+  var ALOJ_TERMO_TABLE = "alojamento_termos";
+
+  /* =========================================================
      ESTADO
      ========================================================= */
+  var activeTab = "maquinas"; // "maquinas" | "alojamentos" | "dashboard"
   var selForm = { obra: OBRAS[0] || "", maquinaTipo: "", maquinaId: "", empresa: "", mesAno: currentMonthISO() };
   var sheet = null; // { key, record, selectedDay, draft }
   var historyView = null; // { tipo, maquinaId } — tela de histórico da máquina (todas as obras/meses)
+  var alojForm = { obra: OBRAS[0] || "", alojamento: "", empresa: "", endereco: "", dataVistoria: "" };
+  var alojView = null; // null (menu) | "checklist" | "termo"
+  var alojSheet = null; // { key, record } — vistoria de alojamento aberta
+  var alojTermoDraft = null; // formulário do termo de uso em preenchimento
+  var dashFilter = { periodo: "3m", obra: "" }; // periodo: "3m" | "mes" | "tudo"; obra: "" = todas
   var capDownloads = null;
   var sigCtl = null;
   var sigCtlFechOperador = null;
   var sigCtlFechTst = null;
+  var sigCtlsFuncionarios = []; // controladores de assinatura — um por linha de funcionário alojado
+  var sigCtlsEnvolvidos = []; // controladores de assinatura — um por linha de envolvido
+  var sigCtlTermoColaborador = null;
+  var sigCtlTermoRepresentante = null;
 
   var root = document.getElementById("root");
 
@@ -978,6 +1159,1207 @@
     document.getElementById("btn-historico-voltar").addEventListener("click", function () { historyView = null; render(); });
     document.querySelectorAll(".history-open").forEach(function (btn) {
       btn.addEventListener("click", function () { openHistoryRecord(btn.getAttribute("data-key")); });
+    });
+  }
+
+  /* =========================================================
+     ALOJAMENTOS — helpers de data e pontuação (NR-18)
+     ========================================================= */
+  function todayISODate() {
+    var d = new Date();
+    return d.getFullYear() + "-" + pad2(d.getMonth() + 1) + "-" + pad2(d.getDate());
+  }
+  function dateBr(iso) {
+    if (!iso) return "—";
+    var parts = String(iso).split("-");
+    if (parts.length !== 3) return iso;
+    return parts[2] + "/" + parts[1] + "/" + parts[0];
+  }
+  // Regra de pontuação reproduzida da planilha NR-18: pontuação = nº SIM / nº itens
+  // aplicáveis (SIM + NÃO; itens N/A não entram no denominador). Faixas de classificação
+  // também vêm da planilha (aba Regra_Pontuação).
+  function computeAlojScore(itens) {
+    var sim = 0, aplicaveis = 0;
+    (itens || []).forEach(function (it) {
+      if (it.status === "sim") { sim++; aplicaveis++; }
+      else if (it.status === "nao") { aplicaveis++; }
+    });
+    if (!aplicaveis) return { pontuacao: null, classificacao: null };
+    var frac = sim / aplicaveis;
+    var classificacao = frac <= 0.3 ? "Péssimo" : frac <= 0.5 ? "Ruim" : frac <= 0.7 ? "Regular" : frac < 1 ? "Bom" : "Ótimo";
+    return { pontuacao: frac, classificacao: classificacao };
+  }
+  function classificacaoClass(classificacao) {
+    if (classificacao === "Ótimo") return "otimo";
+    if (classificacao === "Bom") return "bom";
+    if (classificacao === "Regular") return "regular";
+    if (classificacao === "Ruim") return "ruim";
+    if (classificacao === "Péssimo") return "pessimo";
+    return "vazio";
+  }
+  function scoreBadgeHtml(score) {
+    var cls = classificacaoClass(score.classificacao);
+    var pct = score.pontuacao != null ? Math.round(score.pontuacao * 100) + "%" : "—";
+    return '<span class="score-badge is-' + cls + '" id="aloj-score-badge"><span class="score-num">' + pct + "</span> " + esc(score.classificacao || "Sem itens avaliados") + "</span>";
+  }
+
+  /* =========================================================
+     ALOJAMENTOS — persistência local (vistorias/checklist)
+     ========================================================= */
+  function loadAlojChecklists() {
+    try { return JSON.parse(localStorage.getItem(ALOJ_STORAGE_KEY) || "{}"); } catch (e) { return {}; }
+  }
+  function saveAlojChecklists(all) {
+    var json = JSON.stringify(all);
+    try {
+      localStorage.setItem(ALOJ_STORAGE_KEY, json);
+      if (localStorage.getItem(ALOJ_STORAGE_KEY) !== json) throw new Error("roundtrip falhou");
+    } catch (e) {
+      toast("Não foi possível salvar neste dispositivo (armazenamento cheio ou bloqueado).", "error");
+      showStorageWarning();
+    }
+  }
+  function alojChecklistKey(obra, alojamento, data) {
+    return slug(obra) + "|" + slug(alojamento) + "|" + data;
+  }
+  function newAlojChecklistRecord(obra, alojamento, empresa, endereco, dataVistoria) {
+    return {
+      obra: obra,
+      alojamento: alojamento,
+      empresa: empresa || "",
+      endereco: endereco || "",
+      dataVistoria: dataVistoria,
+      horario: "",
+      quantidadeFuncionarios: "",
+      itens: ALOJAMENTO_ITENS.map(function () { return { status: null, recomendacao: "", prazo: "", fotos: [] }; }),
+      funcionarios: [],
+      envolvidos: [],
+      _updatedAt: null
+    };
+  }
+
+  /* =========================================================
+     ALOJAMENTOS — sincronização com a nuvem (Supabase)
+     Mesma lógica da sincronização dos checklists de máquina (local-first,
+     comparando _updatedAt), em tabela própria — para o técnico poder
+     consultar vistorias de outros alojamentos/obras mesmo trocando de obra.
+     ========================================================= */
+  function pushAlojChecklistToCloud(key, record) {
+    var score = computeAlojScore(record.itens);
+    var row = {
+      record_key: key,
+      obra: record.obra,
+      alojamento: record.alojamento,
+      empresa: record.empresa || null,
+      endereco: record.endereco || null,
+      data_vistoria: record.dataVistoria,
+      data: record,
+      pontuacao: score.pontuacao,
+      classificacao: score.classificacao,
+      updated_at: record._updatedAt
+    };
+    fetch(SUPABASE_URL + "/rest/v1/" + ALOJ_TABLE + "?on_conflict=record_key", {
+      method: "POST",
+      headers: cloudHeaders({ "Prefer": "resolution=merge-duplicates,return=minimal" }),
+      body: JSON.stringify([row])
+    }).then(function (res) {
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      setSyncStatus(true);
+    }).catch(function () {
+      setSyncStatus(false);
+    });
+  }
+  function persistAlojChecklist(key, record) {
+    record._updatedAt = new Date().toISOString();
+    var all = loadAlojChecklists();
+    all[key] = record;
+    saveAlojChecklists(all);
+    pushAlojChecklistToCloud(key, record);
+  }
+  function pullAllAlojChecklistsFromCloud() {
+    return fetch(SUPABASE_URL + "/rest/v1/" + ALOJ_TABLE + "?select=record_key,data,updated_at", {
+      headers: cloudHeaders()
+    }).then(function (res) {
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      return res.json();
+    });
+  }
+  function syncAlojChecklistsOnStartup() {
+    pullAllAlojChecklistsFromCloud().then(function (rows) {
+      var cloudByKey = {};
+      rows.forEach(function (r) { cloudByKey[r.record_key] = r; });
+      var all = loadAlojChecklists();
+      var localChanged = false;
+      Object.keys(cloudByKey).forEach(function (key) {
+        var row = cloudByKey[key];
+        var local = all[key];
+        var cloudTime = row.updated_at ? new Date(row.updated_at).getTime() : 0;
+        var localTime = local && local._updatedAt ? new Date(local._updatedAt).getTime() : -1;
+        if (cloudTime >= localTime) { all[key] = row.data; localChanged = true; }
+      });
+      if (localChanged) saveAlojChecklists(all);
+      Object.keys(all).forEach(function (key) {
+        var row = cloudByKey[key];
+        var local = all[key];
+        var localTime = local._updatedAt ? new Date(local._updatedAt).getTime() : 0;
+        var cloudTime = row && row.updated_at ? new Date(row.updated_at).getTime() : -1;
+        if (!row || localTime > cloudTime) pushAlojChecklistToCloud(key, local);
+      });
+      setSyncStatus(true);
+      if (alojSheet && all[alojSheet.key]) alojSheet.record = all[alojSheet.key];
+      if (activeTab === "alojamentos") render();
+    }).catch(function () {
+      setSyncStatus(false);
+    });
+  }
+
+  function alojChecklistHistoryEntries(obra, alojamento) {
+    var all = loadAlojChecklists();
+    var obraSlug = slug(obra), alojSlug = slug(alojamento);
+    var list = [];
+    Object.keys(all).forEach(function (key) {
+      var r = all[key];
+      if (slug(r.obra) === obraSlug && slug(r.alojamento) === alojSlug) list.push({ key: key, record: r });
+    });
+    list.sort(function (a, b) { return (b.record.dataVistoria || "").localeCompare(a.record.dataVistoria || ""); });
+    return list;
+  }
+
+  function openAlojChecklist() {
+    var obra = alojForm.obra;
+    var alojamento = (alojForm.alojamento || "").trim();
+    if (!alojamento) { toast("Informe o nome/identificação do alojamento.", "error"); return; }
+    var dataVistoria = alojForm.dataVistoria || todayISODate();
+    var key = alojChecklistKey(obra, alojamento, dataVistoria);
+    var all = loadAlojChecklists();
+    var record = all[key] || newAlojChecklistRecord(obra, alojamento, alojForm.empresa, alojForm.endereco, dataVistoria);
+    alojSheet = { key: key, record: record };
+    alojView = "checklist";
+    render();
+  }
+  function openAlojChecklistRecord(key) {
+    var all = loadAlojChecklists();
+    var record = all[key];
+    if (!record) { toast("Vistoria não encontrada.", "error"); return; }
+    alojSheet = { key: key, record: record };
+    alojView = "checklist";
+    render();
+  }
+  function openAlojTermo() {
+    var alojamento = (alojForm.alojamento || "").trim();
+    if (!alojamento) { toast("Informe o nome/identificação do alojamento.", "error"); return; }
+    alojTermoDraft = newAlojTermoDraft(alojForm.obra, alojamento, alojForm.empresa);
+    alojView = "termo";
+    render();
+  }
+
+  /* =========================================================
+     ALOJAMENTOS — dispatcher da aba
+     ========================================================= */
+  function renderAlojamentosTab() {
+    if (alojView === "checklist" && alojSheet) return renderAlojChecklistSheet();
+    if (alojView === "termo" && alojTermoDraft) return renderAlojTermoForm();
+    return renderAlojMenu();
+  }
+  function bindAlojamentosTab() {
+    if (alojView === "checklist" && alojSheet) { bindAlojChecklistSheet(); return; }
+    if (alojView === "termo" && alojTermoDraft) { bindAlojTermoForm(); return; }
+    bindAlojMenu();
+  }
+
+  /* =========================================================
+     ALOJAMENTOS — menu (escolher obra/alojamento)
+     ========================================================= */
+  function renderAlojMenu() {
+    var obraOptions = OBRAS.map(function (o) { return '<option value="' + esc(o) + '"' + (alojForm.obra === o ? " selected" : "") + ">" + esc(o) + "</option>"; }).join("");
+    var hasAloj = !!(alojForm.alojamento && alojForm.alojamento.trim());
+    var hist = hasAloj ? alojChecklistHistoryEntries(alojForm.obra, alojForm.alojamento) : [];
+    var histRows = hist.map(function (e) {
+      var score = computeAlojScore(e.record.itens);
+      return (
+        '<div class="aloj-menu-row">' +
+        '<div><strong>' + esc(dateBr(e.record.dataVistoria)) + '</strong>' +
+        '<span class="history-sub">' + esc(e.record.obra) + (e.record.empresa ? " · " + esc(e.record.empresa) : "") + "</span></div>" +
+        scoreBadgeHtml(score).replace(' id="aloj-score-badge"', "") +
+        '<button type="button" class="btn btn-secondary aloj-hist-open" data-key="' + esc(e.key) + '">Abrir</button>' +
+        "</div>"
+      );
+    }).join("");
+    return (
+      '<section class="card selection-card">' +
+      '<p class="card-eyebrow">Alojamentos</p>' +
+      '<h1 class="card-title">Checklist e termo de uso do alojamento</h1>' +
+      '<p class="closing-hint">Informe a obra e o alojamento para abrir a vistoria NR-18 ou preencher o termo de uso na entrada de um colaborador.</p>' +
+      '<div class="field-grid">' +
+      '<label class="field"><span>Obra</span><select id="aloj-sel-obra">' + obraOptions + "</select></label>" +
+      '<label class="field"><span>Alojamento</span><input type="text" id="aloj-sel-nome" placeholder="Ex.: Casa 01" value="' + esc(alojForm.alojamento) + '"></label>' +
+      '<label class="field"><span>Empresa (opcional)</span><input type="text" id="aloj-sel-empresa" placeholder="Empresa" value="' + esc(alojForm.empresa) + '"></label>' +
+      '<label class="field"><span>Endereço (opcional)</span><input type="text" id="aloj-sel-endereco" placeholder="Endereço" value="' + esc(alojForm.endereco) + '"></label>' +
+      '<label class="field"><span>Data da vistoria</span><input type="date" id="aloj-sel-data" value="' + esc(alojForm.dataVistoria || todayISODate()) + '"></label>' +
+      "</div>" +
+      '<div class="btn-row">' +
+      '<button type="button" class="btn btn-primary" id="btn-aloj-checklist"' + (hasAloj ? "" : " disabled") + ">Abrir checklist do alojamento (vistoria NR-18)</button>" +
+      '<button type="button" class="btn btn-secondary" id="btn-aloj-termo"' + (hasAloj ? "" : " disabled") + ">Preencher termo de uso (entrada de colaborador)</button>" +
+      "</div>" +
+      (hasAloj ?
+        '<div class="aloj-menu-list">' +
+        '<p class="card-eyebrow">Vistorias anteriores deste alojamento</p>' +
+        (histRows || '<p class="closing-status is-pending">Nenhuma vistoria registrada ainda para este alojamento.</p>') +
+        "</div>" : "") +
+      "</section>"
+    );
+  }
+  function bindAlojMenu() {
+    document.getElementById("aloj-sel-obra").addEventListener("change", function (e) { alojForm.obra = e.target.value; render(); });
+    document.getElementById("aloj-sel-nome").addEventListener("input", function (e) {
+      alojForm.alojamento = e.target.value;
+      var has = !!e.target.value.trim();
+      var btnC = document.getElementById("btn-aloj-checklist");
+      var btnT = document.getElementById("btn-aloj-termo");
+      if (btnC) btnC.disabled = !has;
+      if (btnT) btnT.disabled = !has;
+    });
+    document.getElementById("aloj-sel-empresa").addEventListener("input", function (e) { alojForm.empresa = e.target.value; });
+    document.getElementById("aloj-sel-endereco").addEventListener("input", function (e) { alojForm.endereco = e.target.value; });
+    document.getElementById("aloj-sel-data").addEventListener("input", function (e) { alojForm.dataVistoria = e.target.value; });
+    document.getElementById("btn-aloj-checklist").addEventListener("click", function () {
+      alojForm.alojamento = document.getElementById("aloj-sel-nome").value;
+      openAlojChecklist();
+    });
+    document.getElementById("btn-aloj-termo").addEventListener("click", function () {
+      alojForm.alojamento = document.getElementById("aloj-sel-nome").value;
+      openAlojTermo();
+    });
+    document.querySelectorAll(".aloj-hist-open").forEach(function (btn) {
+      btn.addEventListener("click", function () { openAlojChecklistRecord(btn.getAttribute("data-key")); });
+    });
+  }
+
+  /* =========================================================
+     ALOJAMENTOS — itens do checklist (vistoria NR-18)
+     ========================================================= */
+  var ALOJ_FOTOS_MAX = 3;
+  function renderAlojItemHtml(record, idx) {
+    var it = record.itens[idx];
+    var desc = ALOJAMENTO_ITENS[idx];
+    var isNao = it.status === "nao";
+    var cls = "aloj-item" + (it.status === "nao" ? " is-nao" : it.status === "sim" ? " is-sim" : "");
+    var fotosArr = it.fotos || [];
+    var atCap = fotosArr.length >= ALOJ_FOTOS_MAX;
+    var fotos = fotosArr.map(function (url, fi) {
+      return '<div class="foto-thumb" data-idx="' + fi + '"><img src="' + url + '" alt="Foto ' + (fi + 1) + ' do item ' + (idx + 1) + '"><button type="button" aria-label="Remover foto">×</button></div>';
+    }).join("");
+    return (
+      '<div class="' + cls + '" data-idx="' + idx + '">' +
+      '<div class="aloj-item-top">' +
+      '<span class="item-num mono">' + (idx + 1) + "</span>" +
+      '<p class="item-desc">' + esc(desc) + "</p>" +
+      '<div class="status-group" role="group" aria-label="Status do item ' + (idx + 1) + '">' +
+      '<button type="button" class="status-btn' + (it.status === "sim" ? " active" : "") + '" data-status="sim">SIM</button>' +
+      '<button type="button" class="status-btn' + (it.status === "nao" ? " active" : "") + '" data-status="nao">NÃO</button>' +
+      '<button type="button" class="status-btn' + (it.status === "na" ? " active" : "") + '" data-status="na">N/A</button>' +
+      "</div></div>" +
+      '<div class="aloj-item-extra"' + (isNao ? "" : " hidden") + ">" +
+      '<label class="field"><span>Recomendação</span><input type="text" class="aloj-recomendacao" placeholder="O que precisa ser feito" value="' + esc(it.recomendacao) + '"></label>' +
+      '<label class="field"><span>Prazo para correção</span><input type="date" class="aloj-prazo" value="' + esc(it.prazo) + '"></label>' +
+      "</div>" +
+      '<div class="foto-section">' +
+      "<span>Fotos do item (1 a " + ALOJ_FOTOS_MAX + " — evidência da vistoria)</span>" +
+      '<div class="foto-list">' + fotos + "</div>" +
+      (atCap ?
+        '<p class="history-sub">Limite de ' + ALOJ_FOTOS_MAX + ' fotos atingido para este item.</p>' :
+        '<button type="button" class="foto-add-btn aloj-foto-add">📷 Tirar/anexar foto</button><input type="file" class="aloj-foto-input" accept="image/*" capture="environment" multiple hidden>') +
+      "</div>" +
+      "</div>"
+    );
+  }
+  function refreshAlojItem(record, idx) {
+    var row = document.querySelector('.aloj-item[data-idx="' + idx + '"]');
+    if (row) row.outerHTML = renderAlojItemHtml(record, idx);
+    updateAlojScoreBadge(record);
+  }
+  function updateAlojScoreBadge(record) {
+    var badge = document.getElementById("aloj-score-badge");
+    if (!badge) return;
+    badge.outerHTML = scoreBadgeHtml(computeAlojScore(record.itens));
+  }
+
+  /* =========================================================
+     ALOJAMENTOS — listas dinâmicas (funcionários alojados / envolvidos)
+     ========================================================= */
+  function renderDynList(list, kind, nomeLabel, withCargo) {
+    var rows = list.map(function (item, idx) {
+      return (
+        '<div class="dyn-row" data-idx="' + idx + '">' +
+        '<div class="dyn-row-top"><strong>' + esc(nomeLabel) + " " + (idx + 1) + "</strong>" +
+        '<button type="button" class="dyn-remove-btn" data-idx="' + idx + '">Remover</button>' +
+        "</div>" +
+        '<div class="dyn-row-fields">' +
+        '<label class="field"><span>Nome</span><input type="text" class="dyn-nome" data-idx="' + idx + '" value="' + esc(item.nome) + '"></label>' +
+        (withCargo ? '<label class="field"><span>Cargo/função</span><input type="text" class="dyn-cargo" data-idx="' + idx + '" value="' + esc(item.cargo || "") + '"></label>' : "") +
+        "</div>" +
+        '<div class="sig-block"><span>Assinatura</span><div class="sig-pad-wrap"><canvas class="dyn-sig-canvas" data-idx="' + idx + '"></canvas><span class="sig-hint dyn-sig-hint" data-idx="' + idx + '">Assine aqui</span></div><button type="button" class="btn-ghost dyn-sig-clear" data-idx="' + idx + '">Limpar assinatura</button></div>' +
+        "</div>"
+      );
+    }).join("");
+    return '<div class="dyn-list">' + rows + "</div>";
+  }
+  function mountAlojDynList(kind) {
+    var record = alojSheet.record;
+    var list = kind === "funcionarios" ? record.funcionarios : record.envolvidos;
+    var wrap = document.getElementById(kind === "funcionarios" ? "funcionarios-list" : "envolvidos-list");
+    if (!wrap) return;
+    wrap.innerHTML = renderDynList(list, kind, kind === "funcionarios" ? "Funcionário" : "Envolvido", kind === "envolvidos");
+    var ctlArr = kind === "funcionarios" ? sigCtlsFuncionarios : sigCtlsEnvolvidos;
+    ctlArr.length = 0;
+    wrap.querySelectorAll(".dyn-sig-canvas").forEach(function (canvas) {
+      var idx = parseInt(canvas.getAttribute("data-idx"), 10);
+      var hint = wrap.querySelector('.dyn-sig-hint[data-idx="' + idx + '"]');
+      var ctl = setupSignaturePad(canvas, hint);
+      var item = list[idx];
+      if (item && item.assinatura) ctl.restore(item.assinatura);
+      ctl.onChange = function (dataUrl) { if (list[idx]) list[idx].assinatura = dataUrl; };
+      ctlArr[idx] = ctl;
+    });
+    wrap.querySelectorAll(".dyn-nome").forEach(function (input) {
+      input.addEventListener("input", function (e) {
+        var idx = parseInt(e.target.getAttribute("data-idx"), 10);
+        if (list[idx]) list[idx].nome = e.target.value;
+      });
+    });
+    wrap.querySelectorAll(".dyn-cargo").forEach(function (input) {
+      input.addEventListener("input", function (e) {
+        var idx = parseInt(e.target.getAttribute("data-idx"), 10);
+        if (list[idx]) list[idx].cargo = e.target.value;
+      });
+    });
+    wrap.querySelectorAll(".dyn-sig-clear").forEach(function (btn) {
+      btn.addEventListener("click", function (e) {
+        var idx = parseInt(e.target.getAttribute("data-idx"), 10);
+        if (ctlArr[idx]) ctlArr[idx].clear();
+      });
+    });
+    wrap.querySelectorAll(".dyn-remove-btn").forEach(function (btn) {
+      btn.addEventListener("click", function (e) {
+        var idx = parseInt(e.target.getAttribute("data-idx"), 10);
+        list.splice(idx, 1);
+        mountAlojDynList(kind);
+      });
+    });
+  }
+
+  /* =========================================================
+     ALOJAMENTOS — tela da vistoria (checklist completo)
+     ========================================================= */
+  function renderAlojChecklistSheet() {
+    var record = alojSheet.record;
+    var score = computeAlojScore(record.itens);
+    var itemsHtml = record.itens.map(function (_, idx) { return renderAlojItemHtml(record, idx); }).join("");
+    return (
+      '<section class="card">' +
+      '<div class="sheet-toolbar">' +
+      "<div>" +
+      '<p class="card-eyebrow">Vistoria do alojamento — NR-18</p>' +
+      '<h1 class="card-title">' + esc(record.alojamento) + " — " + esc(dateBr(record.dataVistoria)) + "</h1>" +
+      "</div>" +
+      '<div class="sheet-toolbar-actions">' +
+      '<button type="button" class="btn-ghost" id="btn-aloj-voltar">Voltar</button>' +
+      "</div>" +
+      "</div>" +
+      '<div class="plate">' +
+      '<div class="plate-item"><span class="plate-label">Obra</span><span class="plate-value">' + esc(record.obra) + "</span></div>" +
+      '<div class="plate-item"><span class="plate-label">Empresa</span><span class="plate-value">' + esc(record.empresa || "—") + "</span></div>" +
+      '<div class="plate-item"><span class="plate-label">Endereço</span><span class="plate-value">' + esc(record.endereco || "—") + "</span></div>" +
+      "</div>" +
+      scoreBadgeHtml(score) +
+      '<div class="field-grid">' +
+      '<label class="field"><span>Horário da vistoria</span><input type="time" id="aloj-horario" value="' + esc(record.horario) + '"></label>' +
+      '<label class="field"><span>Quantidade de funcionários alojados</span><input type="number" id="aloj-qtd-func" min="0" value="' + esc(record.quantidadeFuncionarios) + '"></label>' +
+      "</div>" +
+      '<div class="items-list" id="aloj-items-list">' + itemsHtml + "</div>" +
+      '<p class="card-eyebrow">Funcionários alojados</p>' +
+      '<div id="funcionarios-list"></div>' +
+      '<div class="btn-row" style="margin-bottom:18px;"><button type="button" class="btn btn-secondary" id="btn-add-funcionario">+ Adicionar funcionário</button></div>' +
+      '<p class="card-eyebrow">Envolvidos na vistoria</p>' +
+      '<div id="envolvidos-list"></div>' +
+      '<div class="btn-row" style="margin-bottom:18px;"><button type="button" class="btn btn-secondary" id="btn-add-envolvido">+ Adicionar envolvido</button></div>' +
+      '<div class="btn-row">' +
+      '<button type="button" class="btn btn-primary" id="btn-aloj-salvar">Salvar vistoria</button>' +
+      '<button type="button" class="btn btn-secondary" id="btn-aloj-pdf">Baixar PDF da vistoria</button>' +
+      "</div>" +
+      "</section>"
+    );
+  }
+  function bindAlojChecklistSheet() {
+    var record = alojSheet.record;
+    document.getElementById("btn-aloj-voltar").addEventListener("click", function () { alojSheet = null; alojView = null; render(); });
+    document.getElementById("aloj-horario").addEventListener("input", function (e) { record.horario = e.target.value; });
+    document.getElementById("aloj-qtd-func").addEventListener("input", function (e) { record.quantidadeFuncionarios = e.target.value; });
+
+    var itemsList = document.getElementById("aloj-items-list");
+    itemsList.addEventListener("click", function (e) {
+      var statusBtn = e.target.closest(".status-btn");
+      if (statusBtn) {
+        var row = statusBtn.closest(".aloj-item");
+        var idx = parseInt(row.getAttribute("data-idx"), 10);
+        var status = statusBtn.getAttribute("data-status");
+        record.itens[idx].status = status;
+        row.querySelectorAll(".status-btn").forEach(function (b) { b.classList.remove("active"); });
+        statusBtn.classList.add("active");
+        row.classList.remove("is-nao", "is-sim");
+        if (status === "nao") row.classList.add("is-nao");
+        if (status === "sim") row.classList.add("is-sim");
+        var isNao = status === "nao";
+        var extra = row.querySelector(".aloj-item-extra");
+        if (extra) extra.hidden = !isNao;
+        updateAlojScoreBadge(record);
+        return;
+      }
+      var addFotoBtn = e.target.closest(".aloj-foto-add");
+      if (addFotoBtn) {
+        var row2 = addFotoBtn.closest(".aloj-item");
+        row2.querySelector(".aloj-foto-input").click();
+        return;
+      }
+      var removeFotoBtn = e.target.closest(".foto-thumb button");
+      if (removeFotoBtn) {
+        var row3 = removeFotoBtn.closest(".aloj-item");
+        var idx3 = parseInt(row3.getAttribute("data-idx"), 10);
+        var thumb = removeFotoBtn.closest(".foto-thumb");
+        var fIdx = parseInt(thumb.getAttribute("data-idx"), 10);
+        record.itens[idx3].fotos.splice(fIdx, 1);
+        refreshAlojItem(record, idx3);
+      }
+    });
+    itemsList.addEventListener("input", function (e) {
+      var row = e.target.closest(".aloj-item");
+      if (!row) return;
+      var idx = parseInt(row.getAttribute("data-idx"), 10);
+      if (e.target.classList.contains("aloj-recomendacao")) record.itens[idx].recomendacao = e.target.value;
+      if (e.target.classList.contains("aloj-prazo")) record.itens[idx].prazo = e.target.value;
+    });
+    itemsList.addEventListener("change", function (e) {
+      if (!e.target.classList.contains("aloj-foto-input")) return;
+      var row = e.target.closest(".aloj-item");
+      var idx = parseInt(row.getAttribute("data-idx"), 10);
+      var files = Array.prototype.slice.call(e.target.files || []);
+      e.target.value = "";
+      if (!files.length) return;
+      var remaining = ALOJ_FOTOS_MAX - (record.itens[idx].fotos || []).length;
+      if (remaining <= 0) { toast("Este item já tem o limite de " + ALOJ_FOTOS_MAX + " fotos.", "error"); return; }
+      if (files.length > remaining) {
+        toast("Só é possível anexar mais " + remaining + " foto(s) neste item (limite de " + ALOJ_FOTOS_MAX + "). As demais foram ignoradas.", "error");
+        files = files.slice(0, remaining);
+      }
+      toast("Processando " + files.length + " foto(s)…");
+      Promise.all(files.map(compressImageFile)).then(function (dataUrls) {
+        dataUrls.forEach(function (url) { if (url) record.itens[idx].fotos.push(url); });
+        refreshAlojItem(record, idx);
+      }).catch(function () {
+        toast("Não foi possível processar uma das fotos.", "error");
+      });
+    });
+
+    mountAlojDynList("funcionarios");
+    mountAlojDynList("envolvidos");
+    document.getElementById("btn-add-funcionario").addEventListener("click", function () {
+      record.funcionarios.push({ nome: "", assinatura: null });
+      mountAlojDynList("funcionarios");
+    });
+    document.getElementById("btn-add-envolvido").addEventListener("click", function () {
+      record.envolvidos.push({ nome: "", cargo: "", assinatura: null });
+      mountAlojDynList("envolvidos");
+    });
+
+    document.getElementById("btn-aloj-salvar").addEventListener("click", function () {
+      persistAlojChecklist(alojSheet.key, record);
+      toast("Vistoria do alojamento salva.");
+      render();
+    });
+    document.getElementById("btn-aloj-pdf").addEventListener("click", function () { offerAlojChecklistPDF(record); });
+  }
+
+  /* =========================================================
+     ALOJAMENTOS — PDF da vistoria (checklist NR-18)
+     ========================================================= */
+  function buildAlojChecklistPDF(record) {
+    var jsPDFCtor = window.jspdf && window.jspdf.jsPDF;
+    if (!jsPDFCtor) return null;
+    var doc = new jsPDFCtor({ unit: "mm", format: "a4", orientation: "portrait" });
+    var pageWidth = doc.internal.pageSize.getWidth();
+    var pageHeight = doc.internal.pageSize.getHeight();
+    var marginX = 14;
+    var y = 16;
+    function ensureSpace(extra) {
+      if (y + extra > pageHeight - 14) { doc.addPage("a4", "portrait"); y = 16; }
+    }
+
+    try {
+      if (EMAIS_LOGO) {
+        var logoW = 24, logoH = 24 * (273 / 844);
+        doc.addImage(EMAIS_LOGO, "PNG", pageWidth - marginX - logoW, 8, logoW, logoH);
+      }
+    } catch (e) { /* logo é decorativo; segue sem ele se falhar */ }
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(14);
+    doc.text("CHECKLIST ALOJAMENTO — NR-18", marginX, y);
+    y += 5;
+    doc.setDrawColor(200);
+    doc.setLineWidth(0.4);
+    doc.line(marginX, y, pageWidth - marginX, y);
+    y += 6;
+
+    var score = computeAlojScore(record.itens);
+    var pct = score.pontuacao != null ? Math.round(score.pontuacao * 100) + "%" : "—";
+
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "bold"); doc.text("Obra:", marginX, y);
+    doc.setFont("helvetica", "normal"); doc.text(String(record.obra), marginX + 16, y);
+    doc.setFont("helvetica", "bold"); doc.text("Alojamento:", marginX + 100, y);
+    doc.setFont("helvetica", "normal"); doc.text(String(record.alojamento), marginX + 128, y);
+    y += 5.5;
+    doc.setFont("helvetica", "bold"); doc.text("Empresa:", marginX, y);
+    doc.setFont("helvetica", "normal"); doc.text(String(record.empresa || "—"), marginX + 16, y);
+    doc.setFont("helvetica", "bold"); doc.text("Data:", marginX + 100, y);
+    doc.setFont("helvetica", "normal"); doc.text(dateBr(record.dataVistoria) + (record.horario ? " às " + record.horario : ""), marginX + 128, y);
+    y += 5.5;
+    doc.setFont("helvetica", "bold"); doc.text("Endereço:", marginX, y);
+    doc.setFont("helvetica", "normal");
+    var endLines = doc.splitTextToSize(String(record.endereco || "—"), 70);
+    doc.text(endLines, marginX + 16, y);
+    doc.setFont("helvetica", "bold"); doc.text("Qtd. funcionários:", marginX + 100, y);
+    doc.setFont("helvetica", "normal"); doc.text(String(record.quantidadeFuncionarios || "—"), marginX + 138, y);
+    y += Math.max(endLines.length * 4, 5.5) + 1;
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(11);
+    var cls = classificacaoClass(score.classificacao);
+    var color = cls === "otimo" || cls === "bom" ? [46, 125, 79] : cls === "regular" ? [138, 90, 16] : cls === "vazio" ? [120, 120, 120] : [178, 58, 46];
+    doc.setTextColor(color[0], color[1], color[2]);
+    doc.text("Pontuação: " + pct + " — " + (score.classificacao || "Sem itens avaliados"), marginX, y);
+    doc.setTextColor(20);
+    y += 7;
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9.5);
+    doc.text("Itens verificados", marginX, y);
+    y += 5;
+    doc.setFontSize(7.8);
+
+    record.itens.forEach(function (it, idx) {
+      var label = it.status === "sim" ? "[SIM]" : it.status === "nao" ? "[NÃO]" : it.status === "na" ? "[N/A]" : "[ — ]";
+      var labelColor = it.status === "sim" ? [46, 125, 79] : it.status === "nao" ? [178, 58, 46] : [120, 120, 120];
+      ensureSpace(8);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(labelColor[0], labelColor[1], labelColor[2]);
+      doc.text(label, marginX, y);
+      doc.setTextColor(20);
+      doc.setFont("helvetica", "normal");
+      var descLines = doc.splitTextToSize((idx + 1) + ". " + ALOJAMENTO_ITENS[idx], pageWidth - marginX * 2 - 16);
+      doc.text(descLines, marginX + 16, y);
+      y += descLines.length * 3.6;
+      if (it.status === "nao" && (it.recomendacao || it.prazo)) {
+        ensureSpace(6);
+        doc.setFontSize(7.2);
+        doc.setTextColor(110);
+        var extraText = (it.recomendacao ? "Recomendação: " + it.recomendacao : "") + (it.prazo ? "   Prazo: " + dateBr(it.prazo) : "");
+        var extraLines = doc.splitTextToSize(extraText, pageWidth - marginX * 2 - 16);
+        doc.text(extraLines, marginX + 16, y);
+        doc.setTextColor(20);
+        doc.setFontSize(7.8);
+        y += extraLines.length * 3.4;
+      }
+      y += 1.8;
+    });
+
+    var fotoEntries = [];
+    record.itens.forEach(function (it, idx) {
+      (it.fotos || []).forEach(function (foto, fi) { fotoEntries.push({ item: idx + 1, foto: foto, idx: fi + 1 }); });
+    });
+    if (fotoEntries.length) {
+      ensureSpace(40);
+      y += 3;
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(9.5);
+      doc.setTextColor(20);
+      doc.text("Fotos anexadas", marginX, y);
+      y += 5;
+      var fotoW = 40, fotoH = 30, fotoGap = 6, fotoPerRow = Math.max(1, Math.floor((pageWidth - marginX * 2) / (fotoW + fotoGap)));
+      fotoEntries.forEach(function (fe, i) {
+        var col = i % fotoPerRow, row = Math.floor(i / fotoPerRow);
+        var fx = marginX + col * (fotoW + fotoGap), fy = y + row * (fotoH + 9);
+        if (fy + fotoH + 9 > pageHeight - 14) { doc.addPage("a4", "portrait"); y = 16; fy = y; }
+        drawPhotoBlock(doc, fe.foto, "Item " + fe.item + " — foto " + fe.idx, fx, fy, fotoW, fotoH);
+      });
+      var fotoRows = Math.ceil(fotoEntries.length / fotoPerRow);
+      y += fotoRows * (fotoH + 9) + 2;
+    }
+
+    if (record.funcionarios && record.funcionarios.length) {
+      ensureSpace(30);
+      y += 3;
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(9.5);
+      doc.setTextColor(20);
+      doc.text("Funcionários alojados", marginX, y);
+      y += 5;
+      var sigW = 54, sigH = 18, gap = 8, perRow = Math.max(1, Math.floor((pageWidth - marginX * 2) / (sigW + gap)));
+      record.funcionarios.forEach(function (f, i) {
+        var col = i % perRow, row = Math.floor(i / perRow);
+        var sx = marginX + col * (sigW + gap), sy = y + row * (sigH + 9);
+        if (sy + sigH + 9 > pageHeight - 14) { doc.addPage("a4", "portrait"); y = 16; sy = y; }
+        drawSignatureBlock(doc, f.assinatura, f.nome || "—", sx, sy, sigW, sigH);
+      });
+      var rows1 = Math.ceil(record.funcionarios.length / perRow);
+      y += rows1 * (sigH + 9) + 2;
+    }
+
+    if (record.envolvidos && record.envolvidos.length) {
+      ensureSpace(30);
+      y += 3;
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(9.5);
+      doc.setTextColor(20);
+      doc.text("Assinatura dos envolvidos na vistoria", marginX, y);
+      y += 5;
+      var sigW2 = 54, sigH2 = 18, gap2 = 8, perRow2 = Math.max(1, Math.floor((pageWidth - marginX * 2) / (sigW2 + gap2)));
+      record.envolvidos.forEach(function (ev, i) {
+        var col = i % perRow2, row = Math.floor(i / perRow2);
+        var sx = marginX + col * (sigW2 + gap2), sy = y + row * (sigH2 + 9);
+        if (sy + sigH2 + 9 > pageHeight - 14) { doc.addPage("a4", "portrait"); y = 16; sy = y; }
+        drawSignatureBlock(doc, ev.assinatura, (ev.nome || "—") + (ev.cargo ? " — " + ev.cargo : ""), sx, sy, sigW2, sigH2);
+      });
+      var rows2 = Math.ceil(record.envolvidos.length / perRow2);
+      y += rows2 * (sigH2 + 9) + 2;
+    }
+
+    doc.setFontSize(7);
+    doc.setTextColor(150);
+    doc.text("Gerado por ObraCheck em " + new Date().toLocaleString("pt-BR"), marginX, pageHeight - 6);
+
+    return doc;
+  }
+  function offerAlojChecklistPDF(record) {
+    var doc = buildAlojChecklistPDF(record);
+    if (!doc) { toast("Não foi possível gerar o PDF (biblioteca não carregou). Verifique a internet e tente novamente.", "error"); return; }
+    var blob = doc.output("blob");
+    var filename = "checklist_alojamento_" + slug(record.obra) + "_" + slug(record.alojamento) + "_" + record.dataVistoria + ".pdf";
+    offerFile(blob, filename);
+  }
+
+  /* =========================================================
+     ALOJAMENTOS — termo de uso (entrada de colaborador)
+     ========================================================= */
+  function newAlojTermoDraft(obra, alojamento, empresa) {
+    return {
+      obra: obra,
+      alojamento: alojamento,
+      empresa: empresa || "",
+      colaboradorNome: "",
+      colaboradorCpf: "",
+      funcao: "",
+      telefone: "",
+      dataIngresso: todayISODate(),
+      local: "",
+      dataAssinatura: todayISODate(),
+      colaboradorAssinatura: null,
+      representanteNome: "",
+      representanteAssinatura: null
+    };
+  }
+  function renderTermoTextHtml() {
+    var secoesHtml = TERMO_ALOJAMENTO_SECOES.map(function (s) {
+      var itensHtml = s.itens.map(function (it) { return "<li>" + esc(it) + "</li>"; }).join("");
+      return "<h3>" + esc(s.titulo) + "</h3><ul>" + itensHtml + "</ul>";
+    }).join("");
+    return (
+      '<div class="termo-text">' +
+      "<p>" + esc(TERMO_ALOJAMENTO_INTRO) + "</p>" +
+      secoesHtml +
+      "<h3>Penalidades</h3><p>" + esc(TERMO_ALOJAMENTO_PENALIDADE) + "</p>" +
+      "<h3>Declaração</h3><p>" + esc(TERMO_ALOJAMENTO_DECLARACAO) + "</p>" +
+      "</div>"
+    );
+  }
+  function renderAlojTermoForm() {
+    var d = alojTermoDraft;
+    return (
+      '<section class="card">' +
+      '<div class="sheet-toolbar">' +
+      "<div>" +
+      '<p class="card-eyebrow">Termo de uso do alojamento</p>' +
+      '<h1 class="card-title">' + esc(d.alojamento) + " — " + esc(d.obra) + "</h1>" +
+      "</div>" +
+      '<button type="button" class="btn-ghost" id="btn-termo-voltar">Voltar</button>' +
+      "</div>" +
+      '<div class="field-grid">' +
+      '<label class="field"><span>Empresa</span><input type="text" id="termo-empresa" value="' + esc(d.empresa) + '"></label>' +
+      '<label class="field"><span>Nome do colaborador</span><input type="text" id="termo-colab-nome" value="' + esc(d.colaboradorNome) + '"></label>' +
+      '<label class="field"><span>CPF do colaborador</span><input type="text" id="termo-colab-cpf" value="' + esc(d.colaboradorCpf) + '"></label>' +
+      '<label class="field"><span>Função</span><input type="text" id="termo-funcao" value="' + esc(d.funcao) + '"></label>' +
+      '<label class="field"><span>Telefone</span><input type="text" id="termo-telefone" value="' + esc(d.telefone) + '"></label>' +
+      '<label class="field"><span>Data de ingresso no alojamento</span><input type="date" id="termo-data-ingresso" value="' + esc(d.dataIngresso) + '"></label>' +
+      "</div>" +
+      renderTermoTextHtml() +
+      '<div class="field-grid">' +
+      '<label class="field"><span>Local</span><input type="text" id="termo-local" placeholder="Cidade/obra" value="' + esc(d.local) + '"></label>' +
+      '<label class="field"><span>Data da assinatura</span><input type="date" id="termo-data-assinatura" value="' + esc(d.dataAssinatura) + '"></label>' +
+      "</div>" +
+      '<div class="closing-grid">' +
+      '<div class="closing-col">' +
+      '<div class="sig-block"><span>Assinatura do colaborador</span><div class="sig-pad-wrap"><canvas id="sig-termo-colaborador"></canvas><span class="sig-hint" id="hint-termo-colaborador">Assine aqui</span></div><button type="button" class="btn-ghost" id="clear-sig-termo-colaborador">Limpar assinatura</button></div>' +
+      "</div>" +
+      '<div class="closing-col">' +
+      '<label class="field"><span>Nome do responsável da empresa</span><input type="text" id="termo-repr-nome" value="' + esc(d.representanteNome) + '"></label>' +
+      '<div class="sig-block"><span>Assinatura do responsável</span><div class="sig-pad-wrap"><canvas id="sig-termo-representante"></canvas><span class="sig-hint" id="hint-termo-representante">Assine aqui</span></div><button type="button" class="btn-ghost" id="clear-sig-termo-representante">Limpar assinatura</button></div>' +
+      "</div>" +
+      "</div>" +
+      '<div id="termo-form-errors" class="form-errors" hidden></div>' +
+      '<div class="btn-row"><button type="button" class="btn btn-primary" id="btn-termo-salvar">Salvar e gerar PDF</button></div>' +
+      "</section>"
+    );
+  }
+  function bindAlojTermoForm() {
+    var d = alojTermoDraft;
+    document.getElementById("btn-termo-voltar").addEventListener("click", function () { alojTermoDraft = null; alojView = null; render(); });
+    document.getElementById("termo-empresa").addEventListener("input", function (e) { d.empresa = e.target.value; });
+    document.getElementById("termo-colab-nome").addEventListener("input", function (e) { d.colaboradorNome = e.target.value; });
+    document.getElementById("termo-colab-cpf").addEventListener("input", function (e) { d.colaboradorCpf = e.target.value; });
+    document.getElementById("termo-funcao").addEventListener("input", function (e) { d.funcao = e.target.value; });
+    document.getElementById("termo-telefone").addEventListener("input", function (e) { d.telefone = e.target.value; });
+    document.getElementById("termo-data-ingresso").addEventListener("input", function (e) { d.dataIngresso = e.target.value; });
+    document.getElementById("termo-local").addEventListener("input", function (e) { d.local = e.target.value; });
+    document.getElementById("termo-data-assinatura").addEventListener("input", function (e) { d.dataAssinatura = e.target.value; });
+    document.getElementById("termo-repr-nome").addEventListener("input", function (e) { d.representanteNome = e.target.value; });
+
+    var colabCanvas = document.getElementById("sig-termo-colaborador");
+    sigCtlTermoColaborador = setupSignaturePad(colabCanvas, document.getElementById("hint-termo-colaborador"));
+    if (d.colaboradorAssinatura) sigCtlTermoColaborador.restore(d.colaboradorAssinatura);
+    sigCtlTermoColaborador.onChange = function (dataUrl) { d.colaboradorAssinatura = dataUrl; };
+    document.getElementById("clear-sig-termo-colaborador").addEventListener("click", function () { sigCtlTermoColaborador.clear(); });
+
+    var reprCanvas = document.getElementById("sig-termo-representante");
+    sigCtlTermoRepresentante = setupSignaturePad(reprCanvas, document.getElementById("hint-termo-representante"));
+    if (d.representanteAssinatura) sigCtlTermoRepresentante.restore(d.representanteAssinatura);
+    sigCtlTermoRepresentante.onChange = function (dataUrl) { d.representanteAssinatura = dataUrl; };
+    document.getElementById("clear-sig-termo-representante").addEventListener("click", function () { sigCtlTermoRepresentante.clear(); });
+
+    document.getElementById("btn-termo-salvar").addEventListener("click", function () {
+      var errBox = document.getElementById("termo-form-errors");
+      var errors = [];
+      if (!d.colaboradorNome.trim()) errors.push("Informe o nome do colaborador.");
+      if (sigCtlTermoColaborador.isEmpty()) errors.push("Colete a assinatura do colaborador.");
+      if (!d.representanteNome.trim()) errors.push("Informe o nome do responsável da empresa.");
+      if (sigCtlTermoRepresentante.isEmpty()) errors.push("Colete a assinatura do responsável da empresa.");
+      if (errors.length) {
+        errBox.hidden = false;
+        errBox.innerHTML = "<strong>Corrija antes de continuar:</strong><ul>" + errors.map(function (er) { return "<li>" + esc(er) + "</li>"; }).join("") + "</ul>";
+        errBox.scrollIntoView({ behavior: "smooth", block: "center" });
+        return;
+      }
+      errBox.hidden = true;
+      d.colaboradorAssinatura = colabCanvas.toDataURL("image/png");
+      d.representanteAssinatura = reprCanvas.toDataURL("image/png");
+      pushTermoToCloud(d).then(function (ok) {
+        toast(ok ? "Termo salvo e sincronizado com a nuvem." : "Termo salvo neste aparelho — sem conexão com a nuvem agora (o PDF já foi gerado).", ok ? undefined : "error");
+      });
+      offerTermoPDF(d);
+    });
+  }
+  // Só INSERT (sem upsert): um termo assinado é um documento legal — depois de
+  // salvo não deve ser substituído por esta tela. A política de RLS da tabela
+  // também não tem UPDATE para o anon, reforçando isso no lado do banco.
+  function pushTermoToCloud(d) {
+    var row = {
+      obra: d.obra,
+      alojamento: d.alojamento,
+      empresa: d.empresa || null,
+      colaborador_nome: d.colaboradorNome,
+      colaborador_cpf: d.colaboradorCpf || null,
+      data: d
+    };
+    return fetch(SUPABASE_URL + "/rest/v1/" + ALOJ_TERMO_TABLE, {
+      method: "POST",
+      headers: cloudHeaders({ "Prefer": "return=minimal" }),
+      body: JSON.stringify([row])
+    }).then(function (res) {
+      var ok = res.ok;
+      setSyncStatus(ok);
+      return ok;
+    }).catch(function () {
+      setSyncStatus(false);
+      return false;
+    });
+  }
+
+  /* =========================================================
+     ALOJAMENTOS — PDF do termo de uso
+     ========================================================= */
+  function buildTermoPDF(d) {
+    var jsPDFCtor = window.jspdf && window.jspdf.jsPDF;
+    if (!jsPDFCtor) return null;
+    var doc = new jsPDFCtor({ unit: "mm", format: "a4", orientation: "portrait" });
+    var pageWidth = doc.internal.pageSize.getWidth();
+    var pageHeight = doc.internal.pageSize.getHeight();
+    var marginX = 14;
+    var y = 16;
+    function ensureSpace(extra) {
+      if (y + extra > pageHeight - 14) { doc.addPage("a4", "portrait"); y = 16; }
+    }
+    try {
+      if (EMAIS_LOGO) {
+        var logoW = 24, logoH = 24 * (273 / 844);
+        doc.addImage(EMAIS_LOGO, "PNG", pageWidth - marginX - logoW, 8, logoW, logoH);
+      }
+    } catch (e) { /* logo é decorativo; segue sem ele se falhar */ }
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(14);
+    doc.text("TERMO DE USO DO ALOJAMENTO", marginX, y);
+    y += 5;
+    doc.setDrawColor(200);
+    doc.setLineWidth(0.4);
+    doc.line(marginX, y, pageWidth - marginX, y);
+    y += 6.5;
+
+    doc.setFontSize(9);
+    var fields = [
+      ["Empresa", d.empresa || "—"],
+      ["Obra", d.obra || "—"],
+      ["Alojamento", d.alojamento || "—"],
+      ["Colaborador", d.colaboradorNome || "—"],
+      ["CPF", d.colaboradorCpf || "—"],
+      ["Função", d.funcao || "—"],
+      ["Telefone", d.telefone || "—"],
+      ["Data de ingresso", dateBr(d.dataIngresso)]
+    ];
+    fields.forEach(function (f) {
+      ensureSpace(6);
+      doc.setFont("helvetica", "bold"); doc.text(f[0] + ":", marginX, y);
+      doc.setFont("helvetica", "normal");
+      var lines = doc.splitTextToSize(String(f[1]), pageWidth - marginX * 2 - 34);
+      doc.text(lines, marginX + 34, y);
+      y += Math.max(lines.length * 4.2, 5.2);
+    });
+    y += 2;
+
+    doc.setFontSize(8.3);
+    ensureSpace(10);
+    doc.setFont("helvetica", "normal");
+    var introLines = doc.splitTextToSize(TERMO_ALOJAMENTO_INTRO, pageWidth - marginX * 2);
+    doc.text(introLines, marginX, y);
+    y += introLines.length * 3.9 + 3;
+
+    TERMO_ALOJAMENTO_SECOES.forEach(function (s) {
+      ensureSpace(9);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(9.3);
+      doc.text(s.titulo, marginX, y);
+      y += 4.6;
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(8.1);
+      s.itens.forEach(function (it) {
+        var lines = doc.splitTextToSize("•  " + it, pageWidth - marginX * 2 - 4);
+        ensureSpace(lines.length * 3.7 + 1);
+        doc.text(lines, marginX + 2, y);
+        y += lines.length * 3.7 + 1;
+      });
+      y += 2;
+    });
+
+    ensureSpace(14);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9.3);
+    doc.text("Penalidades", marginX, y);
+    y += 4.6;
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8.1);
+    var penLines = doc.splitTextToSize(TERMO_ALOJAMENTO_PENALIDADE, pageWidth - marginX * 2);
+    doc.text(penLines, marginX, y);
+    y += penLines.length * 3.9 + 5;
+
+    ensureSpace(14);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9.3);
+    doc.text("Declaração", marginX, y);
+    y += 4.6;
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8.1);
+    var decLines = doc.splitTextToSize(TERMO_ALOJAMENTO_DECLARACAO, pageWidth - marginX * 2);
+    doc.text(decLines, marginX, y);
+    y += decLines.length * 3.9 + 6;
+
+    ensureSpace(8);
+    doc.setFontSize(8.5);
+    doc.setFont("helvetica", "normal");
+    doc.text((d.local || "—") + ", " + dateBr(d.dataAssinatura), marginX, y);
+    y += 9;
+
+    var sigW = 78, sigH = 24;
+    ensureSpace(sigH + 10);
+    drawSignatureBlock(doc, d.colaboradorAssinatura, "Colaborador — " + (d.colaboradorNome || "—"), marginX, y, sigW, sigH);
+    drawSignatureBlock(doc, d.representanteAssinatura, "Responsável da empresa — " + (d.representanteNome || "—"), marginX + sigW + 12, y, sigW, sigH);
+    y += sigH + 8;
+
+    doc.setFontSize(7);
+    doc.setTextColor(150);
+    doc.text("Gerado por ObraCheck em " + new Date().toLocaleString("pt-BR"), marginX, pageHeight - 6);
+
+    return doc;
+  }
+  function offerTermoPDF(d) {
+    var doc = buildTermoPDF(d);
+    if (!doc) { toast("Não foi possível gerar o PDF (biblioteca não carregou). Verifique a internet e tente novamente.", "error"); return; }
+    var blob = doc.output("blob");
+    var filename = "termo_uso_alojamento_" + slug(d.alojamento) + "_" + slug(d.colaboradorNome || "colaborador") + "_" + (d.dataAssinatura || todayISODate()) + ".pdf";
+    offerFile(blob, filename);
+  }
+
+  /* =========================================================
+     ALOJAMENTOS — barra de abas
+     ========================================================= */
+  function switchTab(tab) {
+    if (activeTab !== tab) {
+      activeTab = tab;
+      document.querySelectorAll(".tab-btn").forEach(function (b) { b.classList.toggle("is-active", b.getAttribute("data-tab") === tab); });
+    }
+    render();
+  }
+  function bindTabBar() {
+    document.getElementById("tab-bar").addEventListener("click", function (e) {
+      var btn = e.target.closest(".tab-btn");
+      if (!btn) return;
+      switchTab(btn.getAttribute("data-tab"));
+    });
+  }
+
+  /* =========================================================
+     DASHBOARD — indicadores do checklist de máquinas
+     ========================================================= */
+  function lastNMonthsISO(n) {
+    var out = [];
+    var d = new Date();
+    for (var i = 0; i < n; i++) {
+      out.push(d.getFullYear() + "-" + pad2(d.getMonth() + 1));
+      d.setMonth(d.getMonth() - 1);
+    }
+    return out;
+  }
+  function recordInDashPeriod(record, periodo) {
+    if (periodo === "tudo") return true;
+    if (periodo === "mes") return record.mesAno === currentMonthISO();
+    return lastNMonthsISO(3).indexOf(record.mesAno) !== -1; // "3m"
+  }
+  // Faixas de adesão usadas tanto no preenchimento quanto no fechamento assinado
+  // — mesma lógica de "bom/alerta/crítico" que o app já usa para a pontuação dos alojamentos.
+  function statusClassForRate(pct) {
+    if (pct == null) return "";
+    if (pct >= 90) return "is-good";
+    if (pct >= 70) return "is-warning";
+    return "is-critical";
+  }
+  function computeDashboardData(periodo, obraFiltro) {
+    var months = loadMonths();
+    var records = Object.keys(months).map(function (k) { return months[k]; }).filter(function (r) {
+      if (!recordInDashPeriod(r, periodo)) return false;
+      if (obraFiltro && r.obra !== obraFiltro) return false;
+      return true;
+    });
+
+    var ncByObra = {}, totalByObra = {};
+    var ncByTipo = {}, totalByTipo = {};
+    var ncByItem = {};
+    var filledDaysByObra = {}, possibleDaysByObra = {};
+    var filledDaysTotal = 0, possibleDaysTotal = 0;
+    var fechamentoTotal = 0, fechamentoAssinado = 0;
+    var pendentesFechamento = [];
+
+    records.forEach(function (r) {
+      var obra = r.obra;
+      var tipoLabel = machineLabel(r.maquinaTipoKey);
+      var effDays = isCurrentMonth(r.mesAno) ? parseInt(todayDayOfMonth(), 10) : daysInMonth(r.mesAno);
+      var diaKeys = Object.keys(r.dias || {});
+
+      diaKeys.forEach(function (diaKey) {
+        var statuses = r.dias[diaKey].statuses || [];
+        statuses.forEach(function (st, idx) {
+          if (st === "nc") {
+            ncByObra[obra] = (ncByObra[obra] || 0) + 1;
+            ncByTipo[tipoLabel] = (ncByTipo[tipoLabel] || 0) + 1;
+            var itemDesc = (r.itens && r.itens[idx]) || "?";
+            var itemKey = tipoLabel + " — " + itemDesc;
+            ncByItem[itemKey] = (ncByItem[itemKey] || 0) + 1;
+          }
+          if (st === "ok" || st === "nc" || st === "na") {
+            totalByObra[obra] = (totalByObra[obra] || 0) + 1;
+            totalByTipo[tipoLabel] = (totalByTipo[tipoLabel] || 0) + 1;
+          }
+        });
+      });
+
+      filledDaysByObra[obra] = (filledDaysByObra[obra] || 0) + diaKeys.length;
+      possibleDaysByObra[obra] = (possibleDaysByObra[obra] || 0) + effDays;
+      filledDaysTotal += diaKeys.length;
+      possibleDaysTotal += effDays;
+
+      fechamentoTotal++;
+      var fech = r.fechamento;
+      if (fech && fech.operadorAssinatura && fech.tstAssinatura) {
+        fechamentoAssinado++;
+      } else {
+        pendentesFechamento.push({
+          key: monthKey(r.obra, r.maquinaTipoKey, r.maquinaId, r.mesAno),
+          obra: r.obra, tipoLabel: tipoLabel, maquinaId: r.maquinaId, mesAno: r.mesAno
+        });
+      }
+    });
+
+    var totalNC = Object.keys(ncByObra).reduce(function (sum, k) { return sum + ncByObra[k]; }, 0);
+
+    return {
+      totalRecords: records.length,
+      totalNC: totalNC,
+      ncByObra: ncByObra, totalByObra: totalByObra,
+      ncByTipo: ncByTipo, totalByTipo: totalByTipo,
+      ncByItem: ncByItem,
+      filledDaysByObra: filledDaysByObra, possibleDaysByObra: possibleDaysByObra,
+      preenchimentoGeral: possibleDaysTotal > 0 ? Math.min(100, (filledDaysTotal / possibleDaysTotal) * 100) : null,
+      fechamentoTotal: fechamentoTotal, fechamentoAssinado: fechamentoAssinado,
+      fechamentoPct: fechamentoTotal > 0 ? (fechamentoAssinado / fechamentoTotal) * 100 : null,
+      pendentesFechamento: pendentesFechamento
+    };
+  }
+  function rankBarRow(label, value, maxValue, displayValue, barColor, subtext) {
+    var pct = maxValue > 0 ? Math.min(100, Math.round((value / maxValue) * 100)) : 0;
+    return (
+      '<div class="rank-row">' +
+      '<div class="rank-row-top"><span class="rank-label">' + esc(label) + '</span><span class="rank-value mono">' + esc(displayValue) + "</span></div>" +
+      '<div class="rank-bar-wrap"><div class="rank-bar" style="width:' + pct + "%;background:" + barColor + ';"></div></div>' +
+      (subtext ? '<span class="rank-sub">' + esc(subtext) + "</span>" : "") +
+      "</div>"
+    );
+  }
+  function openDashboardRecord(key) {
+    var months = loadMonths();
+    var record = months[key];
+    if (!record) { toast("Planilha não encontrada.", "error"); return; }
+    sheet = { key: key, record: record, selectedDay: isCurrentMonth(record.mesAno) ? todayDayOfMonth() : "01" };
+    switchTab("maquinas");
+  }
+  function renderDashboard() {
+    var data = computeDashboardData(dashFilter.periodo, dashFilter.obra);
+    var obraOptions = '<option value="">Todas as obras</option>' + OBRAS.map(function (o) {
+      return '<option value="' + esc(o) + '"' + (dashFilter.obra === o ? " selected" : "") + ">" + esc(o) + "</option>";
+    }).join("");
+    var periodoOptions = [["3m", "Últimos 3 meses"], ["mes", "Mês atual"], ["tudo", "Todo o histórico"]].map(function (p) {
+      return '<option value="' + p[0] + '"' + (dashFilter.periodo === p[0] ? " selected" : "") + ">" + p[1] + "</option>";
+    }).join("");
+    var filtersHtml =
+      '<div class="dash-filters">' +
+      '<label class="field"><span>Obra</span><select id="dash-sel-obra">' + obraOptions + "</select></label>" +
+      '<label class="field"><span>Período</span><select id="dash-sel-periodo">' + periodoOptions + "</select></label>" +
+      "</div>";
+
+    if (!data.totalRecords) {
+      return (
+        '<section class="card">' +
+        '<p class="card-eyebrow">Dashboard</p>' +
+        '<h1 class="card-title">Indicadores do checklist de máquinas</h1>' +
+        filtersHtml +
+        '<p class="closing-status is-pending">Nenhuma planilha encontrada para este filtro ainda.</p>' +
+        "</section>"
+      );
+    }
+
+    var preenchPct = data.preenchimentoGeral;
+    var fechPct = data.fechamentoPct;
+    var statTiles =
+      '<div class="stat-tile"><span class="stat-tile-label">Não conformidades</span><span class="stat-tile-value' + (data.totalNC > 0 ? " is-critical" : " is-good") + '">' + data.totalNC + '</span><span class="stat-tile-sub">no período selecionado</span></div>' +
+      '<div class="stat-tile"><span class="stat-tile-label">Taxa de preenchimento</span><span class="stat-tile-value ' + statusClassForRate(preenchPct) + '">' + (preenchPct != null ? Math.round(preenchPct) + "%" : "—") + '</span><span class="stat-tile-sub">dias preenchidos vs. dias decorridos no período</span></div>' +
+      '<div class="stat-tile"><span class="stat-tile-label">Fechamento assinado</span><span class="stat-tile-value ' + statusClassForRate(fechPct) + '">' + (fechPct != null ? Math.round(fechPct) + "%" : "—") + '</span><span class="stat-tile-sub">' + data.fechamentoAssinado + " de " + data.fechamentoTotal + ' planilha(s)</span></div>';
+
+    var obraRanking = Object.keys(data.ncByObra).map(function (o) { return { label: o, value: data.ncByObra[o], total: data.totalByObra[o] || 0 }; }).sort(function (a, b) { return b.value - a.value; });
+    var maxObraNC = obraRanking.length ? obraRanking[0].value : 0;
+    var obraRankingHtml = obraRanking.length ? obraRanking.map(function (row) {
+      var rate = row.total > 0 ? (row.value / row.total * 100).toFixed(1) + "% dos itens verificados nesta obra" : "";
+      return rankBarRow(row.label, row.value, maxObraNC, String(row.value), "var(--nc)", rate);
+    }).join("") : '<p class="closing-status">Nenhuma não conformidade registrada no período.</p>';
+
+    var tipoRanking = Object.keys(data.ncByTipo).map(function (t) { return { label: t, value: data.ncByTipo[t], total: data.totalByTipo[t] || 0 }; }).sort(function (a, b) { return b.value - a.value; });
+    var maxTipoNC = tipoRanking.length ? tipoRanking[0].value : 0;
+    var tipoRankingHtml = tipoRanking.length ? tipoRanking.map(function (row) {
+      var rate = row.total > 0 ? (row.value / row.total * 100).toFixed(1) + "% dos itens verificados neste tipo" : "";
+      return rankBarRow(row.label, row.value, maxTipoNC, String(row.value), "var(--nc)", rate);
+    }).join("") : '<p class="closing-status">Nenhuma não conformidade registrada no período.</p>';
+
+    var itemRankingArr = Object.keys(data.ncByItem).map(function (k) { return { label: k, value: data.ncByItem[k] }; }).sort(function (a, b) { return b.value - a.value; }).slice(0, 10);
+    var maxItemNC = itemRankingArr.length ? itemRankingArr[0].value : 0;
+    var itemRankingHtml = itemRankingArr.length ? itemRankingArr.map(function (row) {
+      return rankBarRow(row.label, row.value, maxItemNC, String(row.value), "var(--nc)", "");
+    }).join("") : '<p class="closing-status">Nenhuma não conformidade registrada no período.</p>';
+
+    var preenchRanking = Object.keys(data.possibleDaysByObra).map(function (o) {
+      var poss = data.possibleDaysByObra[o] || 0;
+      var fill = data.filledDaysByObra[o] || 0;
+      return { label: o, pct: poss > 0 ? Math.min(100, (fill / poss) * 100) : null, fill: fill, poss: poss };
+    }).filter(function (r) { return r.pct != null; }).sort(function (a, b) { return a.pct - b.pct; });
+    var preenchRankingHtml = preenchRanking.length ? preenchRanking.map(function (row) {
+      var barColor = row.pct >= 90 ? "var(--ok)" : row.pct >= 70 ? "#c98500" : "var(--nc)";
+      return rankBarRow(row.label, row.pct, 100, Math.round(row.pct) + "%", barColor, row.fill + " de " + row.poss + " dia(s) preenchidos");
+    }).join("") : '<p class="closing-status">Sem dados de preenchimento no período.</p>';
+
+    var pendentesHtml = data.pendentesFechamento.slice(0, 8).map(function (p) {
+      return (
+        '<div class="dash-pending-row">' +
+        "<span>" + esc(p.obra) + " — " + esc(p.tipoLabel) + (p.maquinaId ? " (" + esc(p.maquinaId) + ")" : "") + " — " + esc(monthLabel(p.mesAno)) + "</span>" +
+        '<button type="button" class="btn btn-secondary dash-open-sheet" data-key="' + esc(p.key) + '">Abrir</button>' +
+        "</div>"
+      );
+    }).join("");
+
+    return (
+      '<section class="card">' +
+      '<p class="card-eyebrow">Dashboard</p>' +
+      '<h1 class="card-title">Indicadores do checklist de máquinas</h1>' +
+      filtersHtml +
+      '<div class="stat-grid">' + statTiles + "</div>" +
+      '<div class="dash-section">' +
+      '<h2 class="dash-section-title">Não conformidades por obra</h2>' +
+      '<p class="dash-section-hint">Quantidade de itens marcados como não conforme no período, por obra.</p>' +
+      '<div class="rank-list">' + obraRankingHtml + "</div>" +
+      "</div>" +
+      '<div class="dash-section">' +
+      '<h2 class="dash-section-title">Não conformidades por tipo de máquina</h2>' +
+      '<p class="dash-section-hint">Quais equipamentos mais geram não conformidade no período.</p>' +
+      '<div class="rank-list">' + tipoRankingHtml + "</div>" +
+      "</div>" +
+      '<div class="dash-section">' +
+      '<h2 class="dash-section-title">Itens do checklist mais recorrentes em NC</h2>' +
+      '<p class="dash-section-hint">Os 10 itens que mais aparecem como não conforme — aponta falhas que se repetem, não só casos isolados.</p>' +
+      '<div class="rank-list">' + itemRankingHtml + "</div>" +
+      "</div>" +
+      '<div class="dash-section">' +
+      '<h2 class="dash-section-title">Taxa de preenchimento por obra</h2>' +
+      '<p class="dash-section-hint">Dias preenchidos em relação aos dias já decorridos no período — as obras no topo da lista precisam de mais atenção.</p>' +
+      '<div class="rank-list">' + preenchRankingHtml + "</div>" +
+      "</div>" +
+      (data.pendentesFechamento.length ?
+        '<div class="dash-section">' +
+        '<h2 class="dash-section-title">Planilhas sem fechamento assinado</h2>' +
+        '<p class="dash-section-hint">' + data.pendentesFechamento.length + " planilha(s) no período ainda sem a assinatura de encerramento (operador + TST).</p>" +
+        '<div class="dash-pending-list">' + pendentesHtml + (data.pendentesFechamento.length > 8 ? '<p class="rank-sub">+ ' + (data.pendentesFechamento.length - 8) + " outra(s) não exibida(s).</p>" : "") + "</div>" +
+        "</div>" : "") +
+      "</section>"
+    );
+  }
+  function bindDashboard() {
+    var obraSel = document.getElementById("dash-sel-obra");
+    var periodoSel = document.getElementById("dash-sel-periodo");
+    if (obraSel) obraSel.addEventListener("change", function (e) { dashFilter.obra = e.target.value; render(); });
+    if (periodoSel) periodoSel.addEventListener("change", function (e) { dashFilter.periodo = e.target.value; render(); });
+    document.querySelectorAll(".dash-open-sheet").forEach(function (btn) {
+      btn.addEventListener("click", function () { openDashboardRecord(btn.getAttribute("data-key")); });
     });
   }
 
@@ -1429,6 +2811,16 @@
      RENDER — SELEÇÃO (obra / máquina / mês)
      ========================================================= */
   function render() {
+    if (activeTab === "dashboard") {
+      root.innerHTML = renderDashboard();
+      bindDashboard();
+      return;
+    }
+    if (activeTab === "alojamentos") {
+      root.innerHTML = renderAlojamentosTab();
+      bindAlojamentosTab();
+      return;
+    }
     if (historyView) {
       root.innerHTML = renderHistory();
       bindHistory();
@@ -1859,6 +3251,8 @@
   initCapabilities();
   checkStorageHealth();
   syncOnStartup();
+  bindTabBar();
+  syncAlojChecklistsOnStartup();
 })();
 </script>
 </body>
