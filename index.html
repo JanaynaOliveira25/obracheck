@@ -725,6 +725,124 @@
     bar.appendChild(closeBtn);
     document.body.appendChild(bar);
   }
+  /* =========================================================
+     SINCRONIZAÇÃO COM A NUVEM (Supabase)
+     Guarda os mesmos dados também em um banco na nuvem, para não
+     perder o preenchimento se o navegador limpar o armazenamento
+     local (ex.: abrir dentro do WhatsApp) e para o checklist poder
+     ser acompanhado de mais de um aparelho. O localStorage continua
+     sendo a cópia rápida/offline; a nuvem é sincronizada por cima.
+     ========================================================= */
+  var SUPABASE_URL = "https://ivggmzmlxsxtobpunutq.supabase.co";
+  var SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml2Z2dtem1seHN4dG9icHVudXRxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIxMDgyNjAsImV4cCI6MjEwNzY4NDI2MH0.dD7AmxGNKo2tVwnjxmggJ1hnQ0ASObNjUCVix3ut6i4";
+  var SUPABASE_TABLE = "obracheck_records";
+
+  function cloudHeaders(extra) {
+    var h = {
+      "apikey": SUPABASE_ANON_KEY,
+      "Authorization": "Bearer " + SUPABASE_ANON_KEY,
+      "Content-Type": "application/json"
+    };
+    if (extra) for (var k in extra) h[k] = extra[k];
+    return h;
+  }
+
+  function setSyncStatus(ok) {
+    var existing = document.getElementById("cloud-warn");
+    if (ok) {
+      if (existing && existing.parentNode) existing.parentNode.removeChild(existing);
+      return;
+    }
+    if (existing) return;
+    var bar = document.createElement("div");
+    bar.className = "storage-warn";
+    bar.id = "cloud-warn";
+    var msg = document.createElement("span");
+    msg.innerHTML = "<strong>Sem conexão com a nuvem:</strong> os dados estão salvos neste aparelho e serão sincronizados assim que a internet voltar.";
+    var closeBtn = document.createElement("button");
+    closeBtn.type = "button";
+    closeBtn.setAttribute("aria-label", "Fechar aviso");
+    closeBtn.textContent = "×";
+    closeBtn.addEventListener("click", function () { if (bar.parentNode) bar.parentNode.removeChild(bar); });
+    bar.appendChild(msg);
+    bar.appendChild(closeBtn);
+    document.body.appendChild(bar);
+  }
+
+  function pushRecordToCloud(key, record) {
+    var row = {
+      record_key: key,
+      obra: record.obra,
+      maquina_tipo_key: record.maquinaTipoKey,
+      maquina_id: record.maquinaId || null,
+      mes_ano: record.mesAno,
+      data: record,
+      updated_at: record._updatedAt
+    };
+    fetch(SUPABASE_URL + "/rest/v1/" + SUPABASE_TABLE + "?on_conflict=record_key", {
+      method: "POST",
+      headers: cloudHeaders({ "Prefer": "resolution=merge-duplicates,return=minimal" }),
+      body: JSON.stringify([row])
+    }).then(function (res) {
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      setSyncStatus(true);
+    }).catch(function () {
+      setSyncStatus(false);
+    });
+  }
+
+  // Salva localmente (igual antes) e também manda pra nuvem. É essa função
+  // que os pontos do app que gravam um registro devem chamar, no lugar de
+  // mexer em months[key]/saveMonths diretamente.
+  function persistRecord(key, record, months) {
+    record._updatedAt = new Date().toISOString();
+    months[key] = record;
+    saveMonths(months);
+    pushRecordToCloud(key, record);
+  }
+
+  function pullAllFromCloud() {
+    return fetch(SUPABASE_URL + "/rest/v1/" + SUPABASE_TABLE + "?select=record_key,data,updated_at", {
+      headers: cloudHeaders()
+    }).then(function (res) {
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      return res.json();
+    });
+  }
+
+  // Roda uma vez ao abrir o app: busca tudo que está na nuvem, compara com
+  // o que está salvo neste aparelho (pelo campo _updatedAt) e fica com a
+  // versão mais recente de cada planilha. O que só existe neste aparelho
+  // (feito offline, por exemplo) é enviado pra nuvem em seguida.
+  function syncOnStartup() {
+    pullAllFromCloud().then(function (rows) {
+      var cloudByKey = {};
+      rows.forEach(function (r) { cloudByKey[r.record_key] = r; });
+      var months = loadMonths();
+      var localChanged = false;
+      Object.keys(cloudByKey).forEach(function (key) {
+        var row = cloudByKey[key];
+        var local = months[key];
+        var cloudTime = row.updated_at ? new Date(row.updated_at).getTime() : 0;
+        var localTime = local && local._updatedAt ? new Date(local._updatedAt).getTime() : -1;
+        if (cloudTime >= localTime) { months[key] = row.data; localChanged = true; }
+      });
+      if (localChanged) saveMonths(months);
+      Object.keys(months).forEach(function (key) {
+        var row = cloudByKey[key];
+        var local = months[key];
+        var localTime = local._updatedAt ? new Date(local._updatedAt).getTime() : 0;
+        var cloudTime = row && row.updated_at ? new Date(row.updated_at).getTime() : -1;
+        if (!row || localTime > cloudTime) pushRecordToCloud(key, local);
+      });
+      setSyncStatus(true);
+      if (sheet && months[sheet.key]) { sheet.record = months[sheet.key]; }
+      render();
+    }).catch(function () {
+      setSyncStatus(false);
+    });
+  }
+
   function newMonthRecord(obra, tipo, maquinaId, empresa, mesAno) {
     return {
       obra: obra, maquinaTipoKey: tipo, maquinaId: maquinaId, empresa: empresa, mesAno: mesAno,
@@ -1103,8 +1221,7 @@
       if (exists && !window.confirm("Já existe uma planilha salva para " + imported.obra + " / " + machineLabel(imported.maquinaTipoKey) + " / " + monthLabel(imported.mesAno) + " neste aparelho. Importar vai SUBSTITUIR os dados daqui. Continuar?")) {
         return;
       }
-      months[key] = imported;
-      saveMonths(months);
+      persistRecord(key, imported, months);
       toast("Backup importado: " + imported.obra + " / " + machineLabel(imported.maquinaTipoKey) + " / " + monthLabel(imported.mesAno));
       if (sheet && sheet.key === key) { sheet.record = imported; openDay(sheet.selectedDay); } else { render(); }
     };
@@ -1243,11 +1360,10 @@
     var record = months[key];
     if (!record) {
       record = newMonthRecord(selForm.obra, selForm.maquinaTipo, selForm.maquinaId, selForm.empresa, selForm.mesAno);
-      months[key] = record;
-      saveMonths(months);
+      persistRecord(key, record, months);
     } else if (selForm.empresa && record.empresa !== selForm.empresa) {
       record.empresa = selForm.empresa;
-      saveMonths(months);
+      persistRecord(key, record, months);
     }
     sheet = { key: key, record: record, selectedDay: isCurrentMonth(record.mesAno) ? todayDayOfMonth() : "01" };
     render();
@@ -1382,8 +1498,7 @@
         data: new Date().toLocaleString("pt-BR")
       };
       var months = loadMonths();
-      months[sheet.key] = record;
-      saveMonths(months);
+      persistRecord(sheet.key, record, months);
       toast("Fechamento do mês salvo. Ele já entra no próximo PDF gerado.");
       var mount = document.getElementById("closing-section");
       if (mount) mount.outerHTML = renderClosingSection(record);
@@ -1593,8 +1708,7 @@
       atualizadoEm: new Date().toISOString()
     };
     var months = loadMonths();
-    months[sheet.key] = record;
-    saveMonths(months);
+    persistRecord(sheet.key, record, months);
     toast("Dia " + sheet.selectedDay + " salvo.");
     render();
   }
@@ -1605,6 +1719,7 @@
   render();
   initCapabilities();
   checkStorageHealth();
+  syncOnStartup();
 })();
 </script>
 </body>
