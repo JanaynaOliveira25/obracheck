@@ -1671,8 +1671,10 @@
         files = files.slice(0, remaining);
       }
       toast("Processando " + files.length + " foto(s)…");
-      Promise.all(files.map(compressImageFile)).then(function (dataUrls) {
-        dataUrls.forEach(function (url) { if (url) record.itens[idx].fotos.push(url); });
+      compressImagesSequentially(files).then(function (dataUrls) {
+        var falhou = false;
+        dataUrls.forEach(function (url) { if (url) record.itens[idx].fotos.push(url); else falhou = true; });
+        if (falhou) toast("Uma das fotos não pôde ser processada e foi ignorada.", "error");
         refreshAlojItem(record, idx);
       }).catch(function () {
         toast("Não foi possível processar uma das fotos.", "error");
@@ -3153,8 +3155,10 @@
       fotoInput.value = ""; // permite escolher/tirar o mesmo arquivo de novo depois
       if (!files.length) return;
       toast("Processando " + files.length + " foto(s)…");
-      Promise.all(files.map(compressImageFile)).then(function (dataUrls) {
-        dataUrls.forEach(function (url) { if (url) draft.fotos.push(url); });
+      compressImagesSequentially(files).then(function (dataUrls) {
+        var falhou = false;
+        dataUrls.forEach(function (url) { if (url) draft.fotos.push(url); else falhou = true; });
+        if (falhou) toast("Uma das fotos não pôde ser processada e foi ignorada.", "error");
         renderFotoList(draft);
       }).catch(function () {
         toast("Não foi possível processar uma das fotos.", "error");
@@ -3189,12 +3193,24 @@
       reader.onload = function () {
         var img = new Image();
         img.onload = function () {
-          var scale = Math.min(1, maxDim / Math.max(img.width, img.height));
-          var w = Math.max(1, Math.round(img.width * scale));
-          var h = Math.max(1, Math.round(img.height * scale));
+          // Se o navegador não conseguiu decodificar a imagem (comum com fotos em
+          // HEIC vindas de iPhone em alguns navegadores), o onload ainda dispara,
+          // mas a imagem vem com dimensão zero — sem essa checagem, o canvas fica
+          // vazio/transparente e, ao exportar como JPEG (que não tem canal alfa),
+          // o navegador preenche a transparência com preto, salvando uma "foto"
+          // toda preta em vez de avisar que a foto não pôde ser processada.
+          if (!img.naturalWidth || !img.naturalHeight) { resolve(null); return; }
+          var scale = Math.min(1, maxDim / Math.max(img.naturalWidth, img.naturalHeight));
+          var w = Math.max(1, Math.round(img.naturalWidth * scale));
+          var h = Math.max(1, Math.round(img.naturalHeight * scale));
           var canvas = document.createElement("canvas");
           canvas.width = w; canvas.height = h;
           var ctx = canvas.getContext("2d");
+          // Fundo branco antes de desenhar: cobre tanto uma eventual área transparente
+          // da imagem original quanto o caso de o desenho falhar silenciosamente —
+          // nos dois casos o resultado fica branco, nunca preto.
+          ctx.fillStyle = "#ffffff";
+          ctx.fillRect(0, 0, w, h);
           ctx.drawImage(img, 0, 0, w, h);
           try { resolve(canvas.toDataURL("image/jpeg", quality)); }
           catch (e) { resolve(null); }
@@ -3205,6 +3221,20 @@
       reader.onerror = function () { resolve(null); };
       reader.readAsDataURL(file);
     });
+  }
+
+  // Processa as fotos selecionadas uma de cada vez, em vez de Promise.all (todas
+  // ao mesmo tempo): decodificar várias fotos de câmera em paralelo via canvas
+  // é instável em vários navegadores/WebViews de celular — a primeira foto sai
+  // certa e as seguintes saem corrompidas (cor sólida/borrada), porque a decodificação
+  // e o desenho no canvas disputam o mesmo pipeline. Uma de cada vez evita isso.
+  function compressImagesSequentially(files) {
+    var results = [];
+    return files.reduce(function (chain, file) {
+      return chain.then(function () {
+        return compressImageFile(file).then(function (url) { results.push(url); });
+      });
+    }, Promise.resolve()).then(function () { return results; });
   }
 
   function updateConditionalSections(draft) {
