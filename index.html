@@ -1370,10 +1370,19 @@
   /* =========================================================
      ALOJAMENTOS — menu (escolher obra/alojamento)
      ========================================================= */
-  function renderAlojMenu() {
-    var obraOptions = OBRAS.map(function (o) { return '<option value="' + esc(o) + '"' + (alojForm.obra === o ? " selected" : "") + ">" + esc(o) + "</option>"; }).join("");
+  // Seção de histórico isolada em sua própria função: precisa ser re-renderizada
+  // a cada tecla digitada no campo "Alojamento" (sem refazer a tela inteira, o
+  // que tiraria o foco do campo) para a lista de vistorias anteriores aparecer
+  // enquanto o técnico ainda está digitando, e não só depois de trocar de obra.
+  function renderAlojHistorySection() {
     var hasAloj = !!(alojForm.alojamento && alojForm.alojamento.trim());
-    var hist = hasAloj ? alojChecklistHistoryEntries(alojForm.obra, alojForm.alojamento) : [];
+    if (!hasAloj) {
+      return '<p class="closing-hint">Digite o nome/identificação do alojamento para ver as vistorias já registradas nele.</p>';
+    }
+    var hist = alojChecklistHistoryEntries(alojForm.obra, alojForm.alojamento);
+    if (!hist.length) {
+      return '<p class="closing-status is-pending">Nenhuma vistoria registrada ainda para este alojamento.</p>';
+    }
     var histRows = hist.map(function (e) {
       var score = computeAlojScore(e.record.itens);
       return (
@@ -1385,6 +1394,16 @@
         "</div>"
       );
     }).join("");
+    return '<div class="aloj-menu-list">' + histRows + "</div>";
+  }
+  function bindAlojHistoryButtons() {
+    document.querySelectorAll(".aloj-hist-open").forEach(function (btn) {
+      btn.addEventListener("click", function () { openAlojChecklistRecord(btn.getAttribute("data-key")); });
+    });
+  }
+  function renderAlojMenu() {
+    var obraOptions = OBRAS.map(function (o) { return '<option value="' + esc(o) + '"' + (alojForm.obra === o ? " selected" : "") + ">" + esc(o) + "</option>"; }).join("");
+    var hasAloj = !!(alojForm.alojamento && alojForm.alojamento.trim());
     return (
       '<section class="card selection-card">' +
       '<p class="card-eyebrow">Alojamentos</p>' +
@@ -1401,11 +1420,8 @@
       '<button type="button" class="btn btn-primary" id="btn-aloj-checklist"' + (hasAloj ? "" : " disabled") + ">Abrir checklist do alojamento (vistoria NR-18)</button>" +
       '<button type="button" class="btn btn-secondary" id="btn-aloj-termo"' + (hasAloj ? "" : " disabled") + ">Preencher termo de uso (entrada de colaborador)</button>" +
       "</div>" +
-      (hasAloj ?
-        '<div class="aloj-menu-list">' +
-        '<p class="card-eyebrow">Vistorias anteriores deste alojamento</p>' +
-        (histRows || '<p class="closing-status is-pending">Nenhuma vistoria registrada ainda para este alojamento.</p>') +
-        "</div>" : "") +
+      '<p class="card-eyebrow">Vistorias anteriores deste alojamento</p>' +
+      '<div id="aloj-history-section">' + renderAlojHistorySection() + "</div>" +
       "</section>"
     );
   }
@@ -1418,6 +1434,11 @@
       var btnT = document.getElementById("btn-aloj-termo");
       if (btnC) btnC.disabled = !has;
       if (btnT) btnT.disabled = !has;
+      var histSection = document.getElementById("aloj-history-section");
+      if (histSection) {
+        histSection.innerHTML = renderAlojHistorySection();
+        bindAlojHistoryButtons();
+      }
     });
     document.getElementById("aloj-sel-empresa").addEventListener("input", function (e) { alojForm.empresa = e.target.value; });
     document.getElementById("aloj-sel-endereco").addEventListener("input", function (e) { alojForm.endereco = e.target.value; });
@@ -1430,9 +1451,7 @@
       alojForm.alojamento = document.getElementById("aloj-sel-nome").value;
       openAlojTermo();
     });
-    document.querySelectorAll(".aloj-hist-open").forEach(function (btn) {
-      btn.addEventListener("click", function () { openAlojChecklistRecord(btn.getAttribute("data-key")); });
-    });
+    bindAlojHistoryButtons();
   }
 
   /* =========================================================
