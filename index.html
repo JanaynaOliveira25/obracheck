@@ -182,6 +182,12 @@
   }
 
   /* ===== Dashboard ===== */
+  .dash-subtabs { display: flex; gap: 8px; margin-bottom: 18px; }
+  .dash-subtab-btn {
+    appearance: none; border: 1.5px solid var(--border); background: var(--surface); color: var(--text);
+    border-radius: 999px; padding: 8px 16px; font-size: 13px; font-weight: 600; cursor: pointer;
+  }
+  .dash-subtab-btn.is-active { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
   .dash-filters { display: flex; flex-wrap: wrap; gap: 14px; margin-bottom: 20px; }
   .dash-filters .field { min-width: 180px; flex: 1; }
   .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-bottom: 22px; }
@@ -829,6 +835,8 @@
   var alojSheet = null; // { key, record } — vistoria de alojamento aberta
   var alojTermoDraft = null; // formulário do termo de uso em preenchimento
   var dashFilter = { periodo: "3m", obra: "" }; // periodo: "3m" | "mes" | "tudo"; obra: "" = todas
+  var dashView = "maquinas"; // "maquinas" | "alojamentos" — qual painel do Dashboard está em exibição
+  var alojDashFilter = { mes: "", obra: "" }; // mes: "" (ainda não definido, cai no mês mais recente com dados) | "tudo" (acumulado) | "YYYY-MM"; obra: "" = todas
   var capDownloads = null;
   var sigCtl = null;
   var sigCtlFechOperador = null;
@@ -2340,7 +2348,26 @@
     sheet = { key: key, record: record, selectedDay: isCurrentMonth(record.mesAno) ? todayDayOfMonth() : "01" };
     switchTab("maquinas");
   }
+  // Dispatcher: o Dashboard tem dois painéis (Máquinas e Alojamentos),
+  // alternados por um sub-toggle no topo do mesmo card.
   function renderDashboard() {
+    var subtabsHtml =
+      '<div class="dash-subtabs">' +
+      '<button type="button" class="dash-subtab-btn' + (dashView === "maquinas" ? " is-active" : "") + '" data-dashview="maquinas">Máquinas</button>' +
+      '<button type="button" class="dash-subtab-btn' + (dashView === "alojamentos" ? " is-active" : "") + '" data-dashview="alojamentos">Alojamentos</button>' +
+      "</div>";
+    var titulo = dashView === "alojamentos" ? "Indicadores de alojamentos" : "Indicadores do checklist de máquinas";
+    var body = dashView === "alojamentos" ? renderAlojDashboardBody() : renderMaquinasDashboardBody();
+    return (
+      '<section class="card">' +
+      '<p class="card-eyebrow">Dashboard</p>' +
+      '<h1 class="card-title">' + titulo + "</h1>" +
+      subtabsHtml +
+      body +
+      "</section>"
+    );
+  }
+  function renderMaquinasDashboardBody() {
     var data = computeDashboardData(dashFilter.periodo, dashFilter.obra);
     var obraOptions = '<option value="">Todas as obras</option>' + OBRAS.map(function (o) {
       return '<option value="' + esc(o) + '"' + (dashFilter.obra === o ? " selected" : "") + ">" + esc(o) + "</option>";
@@ -2356,12 +2383,8 @@
 
     if (!data.totalRecords) {
       return (
-        '<section class="card">' +
-        '<p class="card-eyebrow">Dashboard</p>' +
-        '<h1 class="card-title">Indicadores do checklist de máquinas</h1>' +
         filtersHtml +
-        '<p class="closing-status is-pending">Nenhuma planilha encontrada para este filtro ainda.</p>' +
-        "</section>"
+        '<p class="closing-status is-pending">Nenhuma planilha encontrada para este filtro ainda.</p>'
       );
     }
 
@@ -2412,9 +2435,6 @@
     }).join("");
 
     return (
-      '<section class="card">' +
-      '<p class="card-eyebrow">Dashboard</p>' +
-      '<h1 class="card-title">Indicadores do checklist de máquinas</h1>' +
       filtersHtml +
       '<div class="stat-grid">' + statTiles + "</div>" +
       '<div class="dash-section">' +
@@ -2442,11 +2462,10 @@
         '<h2 class="dash-section-title">Planilhas sem fechamento assinado</h2>' +
         '<p class="dash-section-hint">' + data.pendentesFechamento.length + " planilha(s) no período ainda sem a assinatura de encerramento (operador + TST).</p>" +
         '<div class="dash-pending-list">' + pendentesHtml + (data.pendentesFechamento.length > 8 ? '<p class="rank-sub">+ ' + (data.pendentesFechamento.length - 8) + " outra(s) não exibida(s).</p>" : "") + "</div>" +
-        "</div>" : "") +
-      "</section>"
+        "</div>" : "")
     );
   }
-  function bindDashboard() {
+  function bindMaquinasDashboard() {
     var obraSel = document.getElementById("dash-sel-obra");
     var periodoSel = document.getElementById("dash-sel-periodo");
     if (obraSel) obraSel.addEventListener("change", function (e) { dashFilter.obra = e.target.value; render(); });
@@ -2454,6 +2473,169 @@
     document.querySelectorAll(".dash-open-sheet").forEach(function (btn) {
       btn.addEventListener("click", function () { openDashboardRecord(btn.getAttribute("data-key")); });
     });
+  }
+
+  /* =========================================================
+     DASHBOARD — indicadores de alojamentos (conformidade NR-18)
+     Indicador principal: média do % de conformidade (pontuação de cada
+     vistoria) entre todas as vistorias do período/obra filtrados — mesma
+     lógica da planilha de indicadores do usuário ("Inspeção de Alojamento":
+     média da conformidade de cada inspeção, meta 90%, apuração mensal).
+     ========================================================= */
+  function alojDashMonthsAvailable() {
+    var all = loadAlojChecklists();
+    var set = {};
+    Object.keys(all).forEach(function (key) {
+      var dv = all[key].dataVistoria;
+      if (dv && dv.length >= 7) set[dv.slice(0, 7)] = true;
+    });
+    return Object.keys(set).sort().reverse(); // "YYYY-MM", mais recente primeiro
+  }
+  function computeAlojDashboardData(mes, obraFiltro) {
+    var all = loadAlojChecklists();
+    var records = Object.keys(all).map(function (k) { return all[k]; }).filter(function (r) {
+      if (obraFiltro && r.obra !== obraFiltro) return false;
+      if (mes !== "tudo" && (r.dataVistoria || "").slice(0, 7) !== mes) return false;
+      return true;
+    });
+
+    var scoresByObra = {}, scoresByAlojamento = {};
+    var somaPontuacao = 0, nComPontuacao = 0;
+    var abaixoDaMeta = [];
+    var alojamentosSet = {};
+
+    records.forEach(function (r) {
+      var score = computeAlojScore(r.itens);
+      alojamentosSet[slug(r.obra) + "|" + slug(r.alojamento)] = true;
+      if (score.pontuacao == null) return; // vistoria sem nenhum item aplicável — não entra na média
+      somaPontuacao += score.pontuacao;
+      nComPontuacao++;
+      (scoresByObra[r.obra] = scoresByObra[r.obra] || []).push(score.pontuacao);
+      var alojLabel = r.obra + " — " + r.alojamento;
+      (scoresByAlojamento[alojLabel] = scoresByAlojamento[alojLabel] || []).push(score.pontuacao);
+      if (score.pontuacao < 0.9) {
+        abaixoDaMeta.push({ obra: r.obra, alojamento: r.alojamento, dataVistoria: r.dataVistoria, pontuacao: score.pontuacao, key: alojChecklistKey(r.obra, r.alojamento, r.dataVistoria) });
+      }
+    });
+
+    var media = nComPontuacao > 0 ? (somaPontuacao / nComPontuacao) : null;
+
+    function avgRanking(byGroup) {
+      return Object.keys(byGroup).map(function (label) {
+        var arr = byGroup[label];
+        var avg = arr.reduce(function (s, v) { return s + v; }, 0) / arr.length;
+        return { label: label, avg: avg, n: arr.length };
+      }).sort(function (a, b) { return a.avg - b.avg; }); // pior primeiro
+    }
+
+    abaixoDaMeta.sort(function (a, b) { return a.pontuacao - b.pontuacao; });
+
+    return {
+      totalInspecoes: records.length,
+      nComPontuacao: nComPontuacao,
+      mediaConformidade: media,
+      totalAlojamentos: Object.keys(alojamentosSet).length,
+      obraRanking: avgRanking(scoresByObra),
+      alojamentoRanking: avgRanking(scoresByAlojamento),
+      abaixoDaMeta: abaixoDaMeta
+    };
+  }
+  function renderAlojDashboardBody() {
+    var meses = alojDashMonthsAvailable();
+    if (!alojDashFilter.mes) alojDashFilter.mes = meses.length ? meses[0] : "tudo";
+    var data = computeAlojDashboardData(alojDashFilter.mes, alojDashFilter.obra);
+
+    var obraOptions = '<option value="">Todas as obras</option>' + OBRAS.map(function (o) {
+      return '<option value="' + esc(o) + '"' + (alojDashFilter.obra === o ? " selected" : "") + ">" + esc(o) + "</option>";
+    }).join("");
+    var mesOptionsArr = [["tudo", "Acumulado (todos os meses)"]].concat(meses.map(function (m) { return [m, monthLabel(m)]; }));
+    var mesOptions = mesOptionsArr.map(function (m) {
+      return '<option value="' + m[0] + '"' + (alojDashFilter.mes === m[0] ? " selected" : "") + ">" + m[1] + "</option>";
+    }).join("");
+    var filtersHtml =
+      '<div class="dash-filters">' +
+      '<label class="field"><span>Obra</span><select id="aloj-dash-sel-obra">' + obraOptions + "</select></label>" +
+      '<label class="field"><span>Período</span><select id="aloj-dash-sel-mes">' + mesOptions + "</select></label>" +
+      "</div>";
+
+    if (!data.totalInspecoes) {
+      return (
+        filtersHtml +
+        '<p class="closing-status is-pending">Nenhuma vistoria de alojamento encontrada para este filtro ainda.</p>'
+      );
+    }
+
+    var mediaPct = data.mediaConformidade != null ? data.mediaConformidade * 100 : null;
+    var statTiles =
+      '<div class="stat-tile"><span class="stat-tile-label">Inspeção de alojamento (média)</span><span class="stat-tile-value ' + statusClassForRate(mediaPct) + '">' + (mediaPct != null ? Math.round(mediaPct) + "%" : "—") + '</span><span class="stat-tile-sub">meta: 90% · média da conformidade de cada vistoria no período</span></div>' +
+      '<div class="stat-tile"><span class="stat-tile-label">Vistorias no período</span><span class="stat-tile-value">' + data.totalInspecoes + '</span><span class="stat-tile-sub">' + data.totalAlojamentos + ' alojamento(s) distinto(s)</span></div>' +
+      '<div class="stat-tile"><span class="stat-tile-label">Abaixo da meta</span><span class="stat-tile-value' + (data.abaixoDaMeta.length > 0 ? " is-critical" : " is-good") + '">' + data.abaixoDaMeta.length + '</span><span class="stat-tile-sub">vistoria(s) com conformidade abaixo de 90%</span></div>';
+
+    var obraRankingHtml = data.obraRanking.length ? data.obraRanking.map(function (row) {
+      var pct = row.avg * 100;
+      var barColor = pct >= 90 ? "var(--ok)" : pct >= 70 ? "#c98500" : "var(--nc)";
+      return rankBarRow(row.label, pct, 100, Math.round(pct) + "%", barColor, row.n + " vistoria(s) consideradas");
+    }).join("") : '<p class="closing-status">Sem dados no período.</p>';
+
+    var alojRankingArr = data.alojamentoRanking.slice(0, 10);
+    var alojRankingHtml = alojRankingArr.length ? alojRankingArr.map(function (row) {
+      var pct = row.avg * 100;
+      var barColor = pct >= 90 ? "var(--ok)" : pct >= 70 ? "#c98500" : "var(--nc)";
+      return rankBarRow(row.label, pct, 100, Math.round(pct) + "%", barColor, row.n + " vistoria(s) consideradas");
+    }).join("") : '<p class="closing-status">Sem dados no período.</p>';
+
+    var abaixoMetaHtml = data.abaixoDaMeta.slice(0, 8).map(function (a) {
+      return (
+        '<div class="dash-pending-row">' +
+        "<span>" + esc(a.obra) + " — " + esc(a.alojamento) + " — " + esc(dateBr(a.dataVistoria)) + " (" + Math.round(a.pontuacao * 100) + "%)</span>" +
+        '<button type="button" class="btn btn-secondary dash-open-aloj" data-key="' + esc(a.key) + '">Abrir</button>' +
+        "</div>"
+      );
+    }).join("");
+
+    return (
+      filtersHtml +
+      '<div class="stat-grid">' + statTiles + "</div>" +
+      '<div class="dash-section">' +
+      '<h2 class="dash-section-title">Conformidade média por obra</h2>' +
+      '<p class="dash-section-hint">Média da pontuação das vistorias no período, por obra — as obras no topo da lista precisam de mais atenção.</p>' +
+      '<div class="rank-list">' + obraRankingHtml + "</div>" +
+      "</div>" +
+      '<div class="dash-section">' +
+      '<h2 class="dash-section-title">Conformidade média por alojamento</h2>' +
+      '<p class="dash-section-hint">Os 10 alojamentos com menor pontuação média no período.</p>' +
+      '<div class="rank-list">' + alojRankingHtml + "</div>" +
+      "</div>" +
+      (data.abaixoDaMeta.length ?
+        '<div class="dash-section">' +
+        '<h2 class="dash-section-title">Vistorias abaixo da meta (90%)</h2>' +
+        '<p class="dash-section-hint">' + data.abaixoDaMeta.length + " vistoria(s) no período com conformidade abaixo da meta.</p>" +
+        '<div class="dash-pending-list">' + abaixoMetaHtml + (data.abaixoDaMeta.length > 8 ? '<p class="rank-sub">+ ' + (data.abaixoDaMeta.length - 8) + " outra(s) não exibida(s).</p>" : "") + "</div>" +
+        "</div>" : "")
+    );
+  }
+  function bindAlojDashboard() {
+    var obraSel = document.getElementById("aloj-dash-sel-obra");
+    var mesSel = document.getElementById("aloj-dash-sel-mes");
+    if (obraSel) obraSel.addEventListener("change", function (e) { alojDashFilter.obra = e.target.value; render(); });
+    if (mesSel) mesSel.addEventListener("change", function (e) { alojDashFilter.mes = e.target.value; render(); });
+    document.querySelectorAll(".dash-open-aloj").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        var key = btn.getAttribute("data-key");
+        switchTab("alojamentos");
+        openAlojChecklistRecord(key);
+      });
+    });
+  }
+  function bindDashboard() {
+    document.querySelectorAll(".dash-subtab-btn").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        dashView = btn.getAttribute("data-dashview");
+        render();
+      });
+    });
+    if (dashView === "alojamentos") bindAlojDashboard();
+    else bindMaquinasDashboard();
   }
 
   /* =========================================================
