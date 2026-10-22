@@ -892,6 +892,12 @@
   function loadMonths() {
     try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}"); } catch (e) { return {}; }
   }
+  function isQuotaError(e) {
+    if (!e) return false;
+    if (e.name === "QuotaExceededError" || e.name === "NS_ERROR_DOM_QUOTA_REACHED") return true;
+    if (e.code === 22 || e.code === 1014) return true;
+    return false;
+  }
   function saveMonths(months) {
     var json = JSON.stringify(months);
     try {
@@ -899,7 +905,7 @@
       if (localStorage.getItem(STORAGE_KEY) !== json) throw new Error("roundtrip falhou");
     } catch (e) {
       toast("Não foi possível salvar neste dispositivo (armazenamento cheio ou bloqueado).", "error");
-      showStorageWarning();
+      showStorageWarning(isQuotaError(e));
     }
   }
   function checkStorageHealth() {
@@ -910,16 +916,21 @@
       localStorage.removeItem(testKey);
       if (!ok) throw new Error("sem roundtrip");
     } catch (e) {
-      showStorageWarning();
+      showStorageWarning(isQuotaError(e));
     }
   }
-  function showStorageWarning() {
-    if (document.getElementById("storage-warn")) return;
+  function showStorageWarning(isQuota) {
+    var existing = document.getElementById("storage-warn");
+    if (existing) { existing.parentNode.removeChild(existing); }
     var bar = document.createElement("div");
     bar.className = "storage-warn";
     bar.id = "storage-warn";
     var msg = document.createElement("span");
-    msg.innerHTML = "<strong>Atenção:</strong> este navegador não está guardando dados neste aparelho — o histórico do checklist pode se perder ao sair da página. Abra o link direto no Chrome ou Safari do aparelho (não dentro do WhatsApp, do app do Claude ou de outro app) para corrigir.";
+    if (isQuota) {
+      msg.innerHTML = "<strong>Atenção:</strong> o armazenamento deste aparelho está cheio (provavelmente por fotos de vistorias de alojamento). Os dados já enviados estão salvos na nuvem, mas novos registros podem não ser guardados neste aparelho. Toque em \"Limpar dados antigos deste aparelho\" nas configurações, ou libere espaço do navegador, para continuar usando normalmente.";
+    } else {
+      msg.innerHTML = "<strong>Atenção:</strong> este navegador não está guardando dados neste aparelho — o histórico do checklist pode se perder ao sair da página. Abra o link direto no Chrome ou Safari do aparelho (não dentro do WhatsApp, do app do Claude ou de outro app) para corrigir.";
+    }
     var closeBtn = document.createElement("button");
     closeBtn.type = "button";
     closeBtn.setAttribute("aria-label", "Fechar aviso");
@@ -1214,10 +1225,35 @@
     try {
       localStorage.setItem(ALOJ_STORAGE_KEY, json);
       if (localStorage.getItem(ALOJ_STORAGE_KEY) !== json) throw new Error("roundtrip falhou");
+      return true;
     } catch (e) {
       toast("Não foi possível salvar neste dispositivo (armazenamento cheio ou bloqueado).", "error");
-      showStorageWarning();
+      showStorageWarning(isQuotaError(e));
+      return false;
     }
+  }
+  // Remove as fotos (pesadas, em base64) de uma cópia local de um registro de
+  // alojamento, mantendo todo o resto (status, recomendações, assinaturas...).
+  // As fotos continuam guardadas na nuvem; usamos isso para não deixar o
+  // espelho local (que guarda TODAS as vistorias de TODAS as obras) explodir
+  // o limite de armazenamento do navegador.
+  function stripAlojRecordForLocal(record) {
+    var copy = JSON.parse(JSON.stringify(record));
+    if (Array.isArray(copy.itens)) {
+      copy.itens.forEach(function (item) { item.fotos = []; });
+    }
+    copy._fotosRemovidasLocalmente = true;
+    return copy;
+  }
+  function fetchAlojChecklistFromCloud(key) {
+    return fetch(SUPABASE_URL + "/rest/v1/" + ALOJ_TABLE + "?record_key=eq." + encodeURIComponent(key) + "&select=data", {
+      headers: cloudHeaders()
+    }).then(function (res) {
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      return res.json();
+    }).then(function (rows) {
+      return (rows && rows[0] && rows[0].data) ? rows[0].data : null;
+    });
   }
   function alojChecklistKey(obra, alojamento, data) {
     return slug(obra) + "|" + slug(alojamento) + "|" + data;
@@ -1258,23 +1294,36 @@
       classificacao: score.classificacao,
       updated_at: record._updatedAt
     };
-    fetch(SUPABASE_URL + "/rest/v1/" + ALOJ_TABLE + "?on_conflict=record_key", {
+    return fetch(SUPABASE_URL + "/rest/v1/" + ALOJ_TABLE + "?on_conflict=record_key", {
       method: "POST",
       headers: cloudHeaders({ "Prefer": "resolution=merge-duplicates,return=minimal" }),
       body: JSON.stringify([row])
     }).then(function (res) {
       if (!res.ok) throw new Error("HTTP " + res.status);
       setSyncStatus(true);
+      return true;
     }).catch(function () {
       setSyncStatus(false);
+      return false;
     });
   }
+  // Salva localmente (com fotos, para funcionar offline/responsivo) e envia
+  // para a nuvem. Só depois de confirmar que a nuvem recebeu os dados é que
+  // trocamos a cópia local pela versão sem fotos — assim o espelho local
+  // (que guarda as vistorias de TODAS as obras) não cresce sem limite, mas
+  // nunca perdemos uma foto que ainda não foi confirmada na nuvem.
   function persistAlojChecklist(key, record) {
     record._updatedAt = new Date().toISOString();
     var all = loadAlojChecklists();
     all[key] = record;
     saveAlojChecklists(all);
-    pushAlojChecklistToCloud(key, record);
+    pushAlojChecklistToCloud(key, record).then(function (ok) {
+      if (!ok) return;
+      var current = loadAlojChecklists();
+      if (!current[key] || current[key]._updatedAt !== record._updatedAt) return;
+      current[key] = stripAlojRecordForLocal(record);
+      saveAlojChecklists(current);
+    });
   }
   function pullAllAlojChecklistsFromCloud() {
     return fetch(SUPABASE_URL + "/rest/v1/" + ALOJ_TABLE + "?select=record_key,data,updated_at", {
@@ -1295,7 +1344,15 @@
         var local = all[key];
         var cloudTime = row.updated_at ? new Date(row.updated_at).getTime() : 0;
         var localTime = local && local._updatedAt ? new Date(local._updatedAt).getTime() : -1;
-        if (cloudTime >= localTime) { all[key] = row.data; localChanged = true; }
+        if (cloudTime >= localTime) {
+          // Guarda localmente só a versão sem fotos (a nuvem já tem a
+          // versão completa confirmada) — exceto a vistoria que está
+          // aberta na tela agora, que precisa das fotos para continuar
+          // sendo editada sem perder nada.
+          var isOpenSheet = alojSheet && alojSheet.key === key;
+          all[key] = isOpenSheet ? row.data : stripAlojRecordForLocal(row.data);
+          localChanged = true;
+        }
       });
       if (localChanged) saveAlojChecklists(all);
       Object.keys(all).forEach(function (key) {
@@ -1306,7 +1363,7 @@
         if (!row || localTime > cloudTime) pushAlojChecklistToCloud(key, local);
       });
       setSyncStatus(true);
-      if (alojSheet && all[alojSheet.key]) alojSheet.record = all[alojSheet.key];
+      if (alojSheet && cloudByKey[alojSheet.key]) alojSheet.record = cloudByKey[alojSheet.key].data;
       if (activeTab === "alojamentos") render();
     }).catch(function () {
       setSyncStatus(false);
@@ -1325,6 +1382,18 @@
     return list;
   }
 
+  // Depois de abrir a vistoria com os dados locais (que podem estar sem
+  // fotos, se já tinham sido confirmados na nuvem antes), busca a versão
+  // completa (com fotos) na nuvem em segundo plano e atualiza a tela — sem
+  // bloquear a abertura, que precisa ser imediata.
+  function hydrateAlojSheetFromCloud(key) {
+    fetchAlojChecklistFromCloud(key).then(function (data) {
+      if (!data) return;
+      if (!alojSheet || alojSheet.key !== key) return; // usuário já saiu da tela
+      alojSheet.record = data;
+      if (activeTab === "alojamentos" && alojView === "checklist") render();
+    }).catch(function () { /* mantém a cópia local; sem rede, segue offline */ });
+  }
   function openAlojChecklist() {
     var obra = alojForm.obra;
     var alojamento = (alojForm.alojamento || "").trim();
@@ -1332,10 +1401,12 @@
     var dataVistoria = alojForm.dataVistoria || todayISODate();
     var key = alojChecklistKey(obra, alojamento, dataVistoria);
     var all = loadAlojChecklists();
+    var isNew = !all[key];
     var record = all[key] || newAlojChecklistRecord(obra, alojamento, alojForm.empresa, alojForm.endereco, dataVistoria);
     alojSheet = { key: key, record: record };
     alojView = "checklist";
     render();
+    if (!isNew) hydrateAlojSheetFromCloud(key);
   }
   function openAlojChecklistRecord(key) {
     var all = loadAlojChecklists();
@@ -1344,6 +1415,7 @@
     alojSheet = { key: key, record: record };
     alojView = "checklist";
     render();
+    hydrateAlojSheetFromCloud(key);
   }
   function openAlojTermo() {
     var alojamento = (alojForm.alojamento || "").trim();
@@ -3183,56 +3255,102 @@
     });
   }
 
-  // Comprime a foto no próprio aparelho antes de guardar (fotos de câmera podem ter
-  // vários MB — sem isso, algumas fotos já estourariam o limite de armazenamento local).
-  function compressImageFile(file, maxDim, quality) {
-    maxDim = maxDim || 1024;
-    quality = quality || 0.68;
-    return new Promise(function (resolve) {
+  // Decodifica o arquivo da foto. createImageBitmap é o caminho mais robusto —
+  // decodifica o Blob direto (sem passar por FileReader+data URL+<img>, uma etapa
+  // a menos onde dado pode corromper) e rejeita de verdade quando a imagem não
+  // pôde ser lida, em vez de "funcionar" silenciosamente com uma imagem vazia.
+  // Em navegadores sem suporte, cai para o caminho antigo via <img>.
+  function decodeImageFile(file) {
+    if (window.createImageBitmap) {
+      return createImageBitmap(file).then(function (bitmap) {
+        return {
+          width: bitmap.width, height: bitmap.height,
+          draw: function (ctx, w, h) { ctx.drawImage(bitmap, 0, 0, w, h); if (bitmap.close) bitmap.close(); }
+        };
+      }).catch(function () { return decodeImageFileViaImg(file); });
+    }
+    return decodeImageFileViaImg(file);
+  }
+  function decodeImageFileViaImg(file) {
+    return new Promise(function (resolve, reject) {
       var reader = new FileReader();
       reader.onload = function () {
         var img = new Image();
         img.onload = function () {
           // Se o navegador não conseguiu decodificar a imagem (comum com fotos em
           // HEIC vindas de iPhone em alguns navegadores), o onload ainda dispara,
-          // mas a imagem vem com dimensão zero — sem essa checagem, o canvas fica
-          // vazio/transparente e, ao exportar como JPEG (que não tem canal alfa),
-          // o navegador preenche a transparência com preto, salvando uma "foto"
-          // toda preta em vez de avisar que a foto não pôde ser processada.
-          if (!img.naturalWidth || !img.naturalHeight) { resolve(null); return; }
-          var scale = Math.min(1, maxDim / Math.max(img.naturalWidth, img.naturalHeight));
-          var w = Math.max(1, Math.round(img.naturalWidth * scale));
-          var h = Math.max(1, Math.round(img.naturalHeight * scale));
-          var canvas = document.createElement("canvas");
-          canvas.width = w; canvas.height = h;
-          var ctx = canvas.getContext("2d");
-          // Fundo branco antes de desenhar: cobre tanto uma eventual área transparente
-          // da imagem original quanto o caso de o desenho falhar silenciosamente —
-          // nos dois casos o resultado fica branco, nunca preto.
-          ctx.fillStyle = "#ffffff";
-          ctx.fillRect(0, 0, w, h);
-          ctx.drawImage(img, 0, 0, w, h);
-          try { resolve(canvas.toDataURL("image/jpeg", quality)); }
-          catch (e) { resolve(null); }
+          // mas a imagem vem com dimensão zero.
+          if (!img.naturalWidth || !img.naturalHeight) { reject(new Error("decode vazio")); return; }
+          resolve({ width: img.naturalWidth, height: img.naturalHeight, draw: function (ctx, w, h) { ctx.drawImage(img, 0, 0, w, h); } });
         };
-        img.onerror = function () { resolve(null); };
+        img.onerror = function () { reject(new Error("falha ao decodificar")); };
         img.src = String(reader.result);
       };
-      reader.onerror = function () { resolve(null); };
+      reader.onerror = function () { reject(new Error("falha ao ler arquivo")); };
       reader.readAsDataURL(file);
     });
+  }
+
+  // Quando várias fotos são selecionadas de uma vez da galeria (confirmado pelo
+  // usuário: acontece tanto no iPhone quanto no Android, mesmo fora de apps como
+  // WhatsApp), o celular às vezes ainda não baixou o arquivo original da foto —
+  // comum quando a galeria guarda só uma cópia reduzida localmente e otimiza o
+  // espaço (iCloud/Google Fotos), baixando o original sob demanda. Nesse caso o
+  // navegador entrega, por enquanto, uma prévia minúscula no lugar da foto real,
+  // o que gera exatamente esse efeito de "bloco de cor sólida" ao ser esticada
+  // para o tamanho do checklist. Detectamos isso pela dimensão decodificada ser
+  // pequena demais para uma foto de câmera e tentamos de novo, dando mais tempo
+  // a cada tentativa para o aparelho terminar de baixar/preparar o arquivo.
+  function decodeImageFileWithRetry(file, attempt) {
+    attempt = attempt || 0;
+    return decodeImageFile(file).then(function (decoded) {
+      var looksLikePlaceholder = Math.max(decoded.width, decoded.height) < 500;
+      if (looksLikePlaceholder && attempt < 4) {
+        return wait(700 * (attempt + 1)).then(function () { return decodeImageFileWithRetry(file, attempt + 1); });
+      }
+      return decoded;
+    });
+  }
+
+  // Comprime a foto no próprio aparelho antes de guardar (fotos de câmera podem ter
+  // vários MB — sem isso, algumas fotos já estourariam o limite de armazenamento local).
+  function compressImageFile(file, maxDim, quality) {
+    maxDim = maxDim || 1024;
+    quality = quality || 0.68;
+    return decodeImageFileWithRetry(file).then(function (decoded) {
+      var scale = Math.min(1, maxDim / Math.max(decoded.width, decoded.height));
+      var w = Math.max(1, Math.round(decoded.width * scale));
+      var h = Math.max(1, Math.round(decoded.height * scale));
+      var canvas = document.createElement("canvas");
+      canvas.width = w; canvas.height = h;
+      var ctx = canvas.getContext("2d");
+      // Fundo branco antes de desenhar: cobre tanto uma eventual área transparente
+      // da imagem original quanto o caso de o desenho falhar silenciosamente —
+      // nos dois casos o resultado fica branco, nunca preto.
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, w, h);
+      decoded.draw(ctx, w, h);
+      try { return canvas.toDataURL("image/jpeg", quality); }
+      catch (e) { return null; }
+    }).catch(function () { return null; });
   }
 
   // Processa as fotos selecionadas uma de cada vez, em vez de Promise.all (todas
   // ao mesmo tempo): decodificar várias fotos de câmera em paralelo via canvas
   // é instável em vários navegadores/WebViews de celular — a primeira foto sai
   // certa e as seguintes saem corrompidas (cor sólida/borrada), porque a decodificação
-  // e o desenho no canvas disputam o mesmo pipeline. Uma de cada vez evita isso.
+  // e o desenho no canvas disputam o mesmo pipeline. Uma pequena pausa entre cada
+  // foto também dá tempo do aparelho terminar qualquer conversão (ex.: HEIC do
+  // iPhone para JPEG) antes de ler a próxima, que é outra fonte conhecida de
+  // corrupção quando várias fotos são selecionadas de uma vez.
+  function wait(ms) { return new Promise(function (resolve) { setTimeout(resolve, ms); }); }
   function compressImagesSequentially(files) {
     var results = [];
-    return files.reduce(function (chain, file) {
+    return files.reduce(function (chain, file, idx) {
       return chain.then(function () {
-        return compressImageFile(file).then(function (url) { results.push(url); });
+        return (idx > 0 ? wait(150) : Promise.resolve()).then(function () {
+          return compressImageFile(file).then(function (url) { results.push(url); });
+        });
       });
     }, Promise.resolve()).then(function () { return results; });
   }
