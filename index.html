@@ -1370,13 +1370,18 @@
     });
   }
 
-  function alojChecklistHistoryEntries(obra, alojamento) {
+  // Histórico de todas as vistorias da obra, sem depender do nome do
+  // alojamento bater exatamente com o que já foi digitado antes — pedido do
+  // usuário porque o mesmo alojamento às vezes foi digitado de formas
+  // diferentes (ex.: "Casa 01", "casa 2 d.a"), o que escondia vistorias já
+  // feitas quando a busca exigia o nome idêntico.
+  function alojChecklistHistoryEntriesByObra(obra) {
     var all = loadAlojChecklists();
-    var obraSlug = slug(obra), alojSlug = slug(alojamento);
+    var obraSlug = slug(obra);
     var list = [];
     Object.keys(all).forEach(function (key) {
       var r = all[key];
-      if (slug(r.obra) === obraSlug && slug(r.alojamento) === alojSlug) list.push({ key: key, record: r });
+      if (slug(r.obra) === obraSlug) list.push({ key: key, record: r });
     });
     list.sort(function (a, b) { return (b.record.dataVistoria || "").localeCompare(a.record.dataVistoria || ""); });
     return list;
@@ -1442,25 +1447,23 @@
   /* =========================================================
      ALOJAMENTOS — menu (escolher obra/alojamento)
      ========================================================= */
-  // Seção de histórico isolada em sua própria função: precisa ser re-renderizada
-  // a cada tecla digitada no campo "Alojamento" (sem refazer a tela inteira, o
-  // que tiraria o foco do campo) para a lista de vistorias anteriores aparecer
-  // enquanto o técnico ainda está digitando, e não só depois de trocar de obra.
+  // Histórico mostra TODAS as vistorias já feitas na obra selecionada, sem
+  // precisar que o nome do alojamento digitado bata exatamente com o que foi
+  // usado antes (pedido do usuário: o mesmo alojamento às vezes é digitado de
+  // formas diferentes — "Casa 01", "casa 2 d.a" — e a busca por nome idêntico
+  // escondia vistorias que já existiam). Cada linha mostra o alojamento, para
+  // diferenciar quando há mais de um na mesma obra.
   function renderAlojHistorySection() {
-    var hasAloj = !!(alojForm.alojamento && alojForm.alojamento.trim());
-    if (!hasAloj) {
-      return '<p class="closing-hint">Digite o nome/identificação do alojamento para ver as vistorias já registradas nele.</p>';
-    }
-    var hist = alojChecklistHistoryEntries(alojForm.obra, alojForm.alojamento);
+    var hist = alojChecklistHistoryEntriesByObra(alojForm.obra);
     if (!hist.length) {
-      return '<p class="closing-status is-pending">Nenhuma vistoria registrada ainda para este alojamento.</p>';
+      return '<p class="closing-status is-pending">Nenhuma vistoria registrada ainda para esta obra.</p>';
     }
     var histRows = hist.map(function (e) {
       var score = computeAlojScore(e.record.itens);
       return (
         '<div class="aloj-menu-row">' +
-        '<div><strong>' + esc(dateBr(e.record.dataVistoria)) + '</strong>' +
-        '<span class="history-sub">' + esc(e.record.obra) + (e.record.empresa ? " · " + esc(e.record.empresa) : "") + "</span></div>" +
+        '<div><strong>' + esc(e.record.alojamento) + '</strong>' +
+        '<span class="history-sub">' + esc(dateBr(e.record.dataVistoria)) + (e.record.empresa ? " · " + esc(e.record.empresa) : "") + "</span></div>" +
         scoreBadgeHtml(score).replace(' id="aloj-score-badge"', "") +
         '<button type="button" class="btn btn-secondary aloj-hist-open" data-key="' + esc(e.key) + '">Abrir</button>' +
         "</div>"
@@ -1492,7 +1495,7 @@
       '<button type="button" class="btn btn-primary" id="btn-aloj-checklist"' + (hasAloj ? "" : " disabled") + ">Abrir checklist do alojamento (vistoria NR-18)</button>" +
       '<button type="button" class="btn btn-secondary" id="btn-aloj-termo"' + (hasAloj ? "" : " disabled") + ">Preencher termo de uso (entrada de colaborador)</button>" +
       "</div>" +
-      '<p class="card-eyebrow">Vistorias anteriores deste alojamento</p>' +
+      '<p class="card-eyebrow">Vistorias anteriores desta obra</p>' +
       '<div id="aloj-history-section">' + renderAlojHistorySection() + "</div>" +
       "</section>"
     );
@@ -1506,11 +1509,8 @@
       var btnT = document.getElementById("btn-aloj-termo");
       if (btnC) btnC.disabled = !has;
       if (btnT) btnT.disabled = !has;
-      var histSection = document.getElementById("aloj-history-section");
-      if (histSection) {
-        histSection.innerHTML = renderAlojHistorySection();
-        bindAlojHistoryButtons();
-      }
+      // O histórico (abaixo) lista as vistorias da obra inteira e não depende
+      // mais do texto digitado aqui, então não precisa ser atualizado a cada tecla.
     });
     document.getElementById("aloj-sel-empresa").addEventListener("input", function (e) { alojForm.empresa = e.target.value; });
     document.getElementById("aloj-sel-endereco").addEventListener("input", function (e) { alojForm.endereco = e.target.value; });
